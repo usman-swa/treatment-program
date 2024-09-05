@@ -7,7 +7,9 @@ import Calendar from "./Calendar"; // Adjust the import as necessary
 import React from "react";
 
 // Helper function to get incomplete activities from mockData
-const getIncompleteActivities = (data: Record<string, { weekday: string; title: string; completed: boolean }[]>) => {
+const getIncompleteActivities = (
+  data: Record<string, { weekday: string; title: string; completed: boolean }[]>
+) => {
   const incompleteActivities: string[] = [];
 
   Object.values(data).forEach((week) => {
@@ -24,8 +26,16 @@ const getIncompleteActivities = (data: Record<string, { weekday: string; title: 
 const mockData = {
   week36: [
     { weekday: "MONDAY", title: "The Meru Health Program", completed: false },
-    { weekday: "WEDNESDAY", title: "Introduction to the Program", completed: true }, // Today
-    { weekday: "FRIDAY", title: "The Science Behind Mindfulness", completed: true },
+    {
+      weekday: "WEDNESDAY",
+      title: "Introduction to the Program",
+      completed: true,
+    }, // Today
+    {
+      weekday: "FRIDAY",
+      title: "The Science Behind Mindfulness",
+      completed: true,
+    },
   ],
   week37: [
     { weekday: "MONDAY", title: "Mind on Autopilot", completed: false }, // Incomplete
@@ -34,8 +44,16 @@ const mockData = {
   ],
   week38: [
     { weekday: "MONDAY", title: "The Negativity Spiral", completed: false }, // Incomplete
-    { weekday: "WEDNESDAY", title: "Spiral of Negative Interpretations", completed: false }, // Incomplete
-    { weekday: "FRIDAY", title: "Interrupting the Negativity Spiral", completed: false },
+    {
+      weekday: "WEDNESDAY",
+      title: "Spiral of Negative Interpretations",
+      completed: false,
+    }, // Incomplete
+    {
+      weekday: "FRIDAY",
+      title: "Interrupting the Negativity Spiral",
+      completed: false,
+    },
   ],
 };
 
@@ -91,8 +109,7 @@ describe("Calendar Component with Activities", () => {
         const activityText = screen.queryByText(activity);
         if (activityText) {
           // Ensure the activity is not in past day cells
-          const dayCell = screen.getByTestId(`day-${day}`);
-          expect(dayCell.contains(activityText)).toBe(false);
+          expect(dayCell).not.toContainElement(activityText);
         }
       });
     });
@@ -102,6 +119,41 @@ describe("Calendar Component with Activities", () => {
     allDaysCells.forEach((cell) => {
       const activities = cell.querySelectorAll("[data-testid='activity']");
       expect(activities.length).toBeLessThanOrEqual(1);
+    });
+  });
+
+  it("should move past incomplete activities to the current day", () => {
+    const today = new Date();
+
+    render(<Calendar programData={mockData} />);
+
+    // Extract incomplete activities from mockData
+    const incompleteActivities = getIncompleteActivities(mockData);
+
+    // Ensure all incomplete activities are displayed in today's cell
+    incompleteActivities.forEach((activity) => {
+      expect(screen.getByText(activity)).toBeInTheDocument();
+    });
+
+    // Check past days to ensure incomplete activities are not present
+    const pastDays = [
+      format(addDays(today, -1), "d"),
+      format(addDays(today, -2), "d"),
+    ];
+
+    pastDays.forEach((day) => {
+      const dayCell = screen.getByTestId(`day-${day}`);
+      expect(dayCell).toBeInTheDocument();
+
+      // Ensure incomplete activities are not present on past days
+      incompleteActivities.forEach((activity) => {
+        // Check that incomplete activities do not appear on past days
+        const activityText = screen.queryByText(activity);
+        if (activityText) {
+          // Ensure the activity is not in past day cells
+          expect(dayCell).not.toContainElement(activityText);
+        }
+      });
     });
   });
 });
