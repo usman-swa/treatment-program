@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   addDays,
   endOfMonth,
@@ -12,7 +12,6 @@ import {
 } from "date-fns";
 
 import styled from "styled-components";
-import treatmentData from "../data/treatmentProgram.json";
 
 interface Activity {
   weekday: string;
@@ -168,6 +167,7 @@ const CalendarBody = styled.div`
   max-width: 100%;
   min-height: 450px;
 `;
+
 /**
  * Fills in the last row of the calendar with `null` values if it is incomplete.
  *
@@ -190,20 +190,19 @@ const fillInLastRow = (
 
   return updatedDays;
 };
-/**
- * Calendar component to display a calendar with activities.
- *
- * @param {Object} props - The component props.
- * @param {TreatmentProgram} [props.programData] - The treatment program data.
- * @returns {JSX.Element} The Calendar component.
- */
-const Calendar: React.FC<{ programData?: TreatmentProgram }> = ({
-  programData = treatmentData,
-}) => {
+
+interface CalendarProps {
+  programData?: TreatmentProgram; // Add this prop
+}
+
+const Calendar: React.FC<CalendarProps> = ({ programData }) => {
   const today = useMemo(() => new Date(), []);
   const [adjustedActivities, setAdjustedActivities] = useState<
     { date: Date; title: string }[]
   >([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
   const currentMonth = today;
   const start = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 });
   const end = endOfMonth(currentMonth);
@@ -224,12 +223,38 @@ const Calendar: React.FC<{ programData?: TreatmentProgram }> = ({
     date ? isSameMonth(date, currentMonth) : false;
 
   useEffect(() => {
-    if (!programData) return;
+    if (programData) {
+      // Use the passed prop if available
+      processProgramData(programData);
+    } else {
+      // Fetch from backend if no prop is passed
+      const fetchProgramData = async () => {
+        try {
+          setLoading(true);
+          const response = await fetch(
+            "http://localhost:4000/api/treatment-program"
+          );
+          if (!response.ok) {
+            throw new Error("Failed to fetch data");
+          }
+          const fetchedProgramData: TreatmentProgram = await response.json();
+          processProgramData(fetchedProgramData);
+        } catch (error) {
+          setError(
+            error instanceof Error ? error.message : "An unknown error occurred"
+          );
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    const treatmentProgram = programData as TreatmentProgram;
+      fetchProgramData();
+    }
+  }, [programData, today]);
 
+  const processProgramData = (data: TreatmentProgram) => {
     const allActivities: { date: Date; title: string }[] = [];
-    const weeks = Object.keys(treatmentProgram);
+    const weeks = Object.keys(data);
 
     weeks.forEach((week) => {
       const weekNumber = parseInt(week.replace("week", ""), 10);
@@ -238,7 +263,7 @@ const Calendar: React.FC<{ programData?: TreatmentProgram }> = ({
         (weekNumber - 36) * 7
       );
 
-      treatmentProgram[week].forEach((activity) => {
+      data[week].forEach((activity) => {
         const dayIndex = [
           "MONDAY",
           "TUESDAY",
@@ -261,87 +286,68 @@ const Calendar: React.FC<{ programData?: TreatmentProgram }> = ({
     });
 
     setAdjustedActivities(allActivities);
-  }, [programData, today]);
-
-  const gridRef = useRef<HTMLDivElement>(null);
-
-  // Handle keyboard navigation
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, index: number) => {
-    const focusableElements = gridRef.current?.querySelectorAll('[tabindex="0"]');
-    if (!focusableElements || !gridRef.current) return;
-
-    let newIndex: number | undefined;
-
-    switch (event.key) {
-      case "ArrowRight":
-        newIndex = (index + 1) % focusableElements.length;
-        break;
-      case "ArrowLeft":
-        newIndex = (index - 1 + focusableElements.length) % focusableElements.length;
-        break;
-      case "ArrowDown":
-        newIndex = (index + 7) % focusableElements.length;
-        break;
-      case "ArrowUp":
-        newIndex = (index - 7 + focusableElements.length) % focusableElements.length;
-        break;
-      default:
-        break;
-    }
-
-    if (newIndex !== undefined) {
-      const newCell = focusableElements[newIndex] as HTMLElement;
-      newCell.focus();
-      event.preventDefault();
-    }
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
 
   return (
     <CalendarContainer>
       <HeaderWrapper>
-        <Header>Weekly Program</Header>
+        <Header>Calendar</Header>
       </HeaderWrapper>
+
       <CalendarHeader>
-        {["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map((day) => (
+        {[
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ].map((day) => (
           <DayName key={day}>{day}</DayName>
         ))}
       </CalendarHeader>
-      <CalendarBody role="grid" ref={gridRef}>
-        {filledDays.map((date, index) => {
-          const activities = date ? getActivitiesForDate(date) : [];
-          const hasActivity = activities.length > 0;
-          const isActive = date ? isToday(date) : false;
-          const isEmpty = !date || !isDayInCurrentMonth(date);
-          const rowIndex = Math.floor(index / 7);
-          const colIndex = index % 7;
+
+      <CalendarBody>
+        {filledDays.map((day, index) => {
+          const isCurrentMonth = isDayInCurrentMonth(day);
+          const isActive = day ? isToday(day) : false; // Ensure it's always a boolean
+          const activities = day ? getActivitiesForDate(day) : [];
 
           return (
             <DayContainer
-              role="gridcell"
-              aria-label={date ? format(date, "EEEE, MMMM d") : ""}
-              tabIndex={isEmpty ? -1 : 0}
               key={index}
               $isActive={isActive}
-              $hasActivity={hasActivity}
-              $isEmpty={isEmpty}
-              $rowIndex={rowIndex}
-              $colIndex={colIndex}
-              onKeyDown={(event) => handleKeyDown(event, index)}
-              aria-selected={isActive}
-              data-testid={`day-${date ? format(date, "d") : "empty"}`}
+              $hasActivity={activities.length > 0}
+              $isEmpty={!isCurrentMonth}
+              $rowIndex={Math.floor(index / 7)}
+              $colIndex={index % 7}
+              tabIndex={isActive ? 0 : -1}
+              data-testid={day ? `day-${format(day, "d")}` : undefined}
             >
-              <DayNumber $hasActivity={hasActivity} $isActive={isActive}>
-                {isEmpty ? "" : format(date, "d")}
-              </DayNumber>
-              {!isEmpty && (
-                <ActivityContainer>
-                  {activities.map((activity, i) => (
-                    <ActivityTitle key={i} $isActive={isActive}>
-                      {activity.title}
-                    </ActivityTitle>
-                  ))}
-                </ActivityContainer>
+              {day && (
+                <DayNumber
+                  $hasActivity={activities.length > 0}
+                  $isActive={isActive}
+                >
+                  {format(day, "d")}
+                </DayNumber>
               )}
+              <ActivityContainer>
+                {activities.map((activity, i) => (
+                  <ActivityTitle key={i} $isActive={isActive}>
+                    {activity.title}
+                  </ActivityTitle>
+                ))}
+              </ActivityContainer>
             </DayContainer>
           );
         })}
