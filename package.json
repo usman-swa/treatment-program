@@ -2,16 +2,15 @@
     "name": "project-root",
     "version": "1.0.0",
     "scripts": {
-      "dev:client": "cd client && next dev",
-      "build:client": "cd client && next build",
-      "start:client": "cd client && next start",
-      "dev:backend": "cd backend && next dev",
-      "build:backend": "cd backend && next build",
-      "start:backend": "cd backend && next start",
-      "dev": "concurrently \"npm run dev:client\" \"npm run dev:backend\""
+        "dev:client": "cd client && next dev",
+        "build:client": "cd client && next build",
+        "start:client": "cd client && next start",
+        "dev:backend": "cd backend && next dev",
+        "build:backend": "cd backend && next build",
+        "start:backend": "cd backend && next start",
+        "dev": "concurrently \"npm run dev:client\" \"npm run dev:backend\""
     },
-    "dependencies": {
-      "concurrently": "^7.0.0"
+    "devDependencies": {
+        "concurrently": "^8.2.2"
     }
-  }
-  
+}
