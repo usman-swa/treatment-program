@@ -2,7 +2,9 @@
 
 import cors, { runMiddleware } from '../../lib/cors';
 
-import treatmentData from '../../src/app/data/treatmentProgram.json';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
   // Run CORS middleware
@@ -16,7 +18,16 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Handle other methods
-  res.status(200).json(treatmentData);
+  try {
+    if (req.method === 'GET') {
+      // Fetch data from PostgreSQL
+      const treatmentPrograms = await prisma.treatmentProgram.findMany();
+      res.status(200).json(treatmentPrograms);
+    } else {
+      res.setHeader('Allow', ['GET']);
+      res.status(405).end(`Method ${req.method} Not Allowed`);
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching data from the database' });
+  }
 }
-
