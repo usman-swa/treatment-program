@@ -3,6 +3,7 @@ import {
   addDays,
   endOfMonth,
   format,
+  isAfter,
   isBefore,
   isSameDay,
   isSameMonth,
@@ -12,6 +13,8 @@ import {
 } from "date-fns";
 
 import styled from "styled-components";
+
+// Define interfaces and styled components as before
 
 interface Activity {
   weekday: string;
@@ -168,13 +171,7 @@ const CalendarBody = styled.div`
   min-height: 450px;
 `;
 
-/**
- * Fills in the last row of the calendar with `null` values if it is incomplete.
- *
- * @param {Date[] | (Date | null)[]} days - The array of days to be filled.
- * @param {number} totalCells - The total number of cells required (e.g., 42 for 6 rows x 7 columns).
- * @returns {(Date | null)[]} - The updated array of days with `null` values added if necessary.
- */
+// Utility function to fill in the last row with null values if needed
 const fillInLastRow = (
   days: (Date | null)[],
   totalCells: number
@@ -192,7 +189,7 @@ const fillInLastRow = (
 };
 
 interface CalendarProps {
-  programData?: TreatmentProgram; // Add this prop
+  programData: TreatmentProgram;
 }
 
 const Calendar: React.FC<CalendarProps> = ({ programData }) => {
@@ -200,9 +197,6 @@ const Calendar: React.FC<CalendarProps> = ({ programData }) => {
   const [adjustedActivities, setAdjustedActivities] = useState<
     { date: Date; title: string }[]
   >([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
   const currentMonth = today;
   const start = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 });
   const end = endOfMonth(currentMonth);
@@ -223,47 +217,18 @@ const Calendar: React.FC<CalendarProps> = ({ programData }) => {
     date ? isSameMonth(date, currentMonth) : false;
 
   useEffect(() => {
-    if (programData) {
-      // Use the passed prop if available
-      processProgramData(programData);
-    } else {
-      // Fetch from backend if no prop is passed
-      const fetchProgramData = async () => {
-        try {
-          setLoading(true);
-          const response = await fetch(
-            "http://localhost:4000/api/treatment-program"
-          );
-          if (!response.ok) {
-            throw new Error("Failed to fetch data");
-          }
-          const fetchedProgramData: TreatmentProgram = await response.json();
-          processProgramData(fetchedProgramData);
-        } catch (error) {
-          setError(
-            error instanceof Error ? error.message : "An unknown error occurred"
-          );
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchProgramData();
-    }
-  }, [programData, today]);
-
-  const processProgramData = (data: TreatmentProgram) => {
+    if (!programData) return;
+  
+    const treatmentProgram = programData as TreatmentProgram;
     const allActivities: { date: Date; title: string }[] = [];
-    const weeks = Object.keys(data);
-
-    weeks.forEach((week) => {
+  
+    const baseDate = new Date(2024, 8, 2); // Define the base date
+  
+    Object.keys(treatmentProgram).forEach((week) => {
       const weekNumber = parseInt(week.replace("week", ""), 10);
-      const weekStartDate = addDays(
-        startOfWeek(today, { weekStartsOn: 1 }),
-        (weekNumber - 36) * 7
-      );
-
-      data[week].forEach((activity) => {
+      const weekStartDate = addDays(baseDate, (weekNumber - 36) * 7);
+  
+      treatmentProgram[week].forEach((activity) => {
         const dayIndex = [
           "MONDAY",
           "TUESDAY",
@@ -273,81 +238,81 @@ const Calendar: React.FC<CalendarProps> = ({ programData }) => {
           "SATURDAY",
           "SUNDAY",
         ].indexOf(activity.weekday.toUpperCase());
+  
         const activityDate = addDays(weekStartDate, dayIndex);
-
+  
         if (activity.completed) {
           allActivities.push({ date: activityDate, title: activity.title });
         } else if (isBefore(activityDate, today)) {
-          allActivities.push({ date: today, title: activity.title });
-        } else {
+          // Move incomplete activities to today if they are overdue
+          allActivities.push({
+            date: today,
+            title: `${activity.title} (Missed)`,
+          });
+        } else if (isAfter(activityDate, today)) {
+          // Add future activities
           allActivities.push({ date: activityDate, title: activity.title });
         }
       });
     });
-
+  
+    console.log('Adjusted Activities:', allActivities); // Debugging
+  
     setAdjustedActivities(allActivities);
-  };
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  }, [programData, today]);
+  
+  
+  
 
   return (
     <CalendarContainer>
       <HeaderWrapper>
         <Header>Calendar</Header>
+        <CalendarHeader>
+          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+            (dayName, idx) => (
+              <DayName key={idx}>{dayName}</DayName>
+            )
+          )}
+        </CalendarHeader>
       </HeaderWrapper>
 
-      <CalendarHeader>
-        {[
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-          "Sunday",
-        ].map((day) => (
-          <DayName key={day}>{day}</DayName>
-        ))}
-      </CalendarHeader>
-
       <CalendarBody>
-        {filledDays.map((day, index) => {
-          const isCurrentMonth = isDayInCurrentMonth(day);
-          const isActive = day ? isToday(day) : false; // Ensure it's always a boolean
-          const activities = day ? getActivitiesForDate(day) : [];
+        {filledDays.map((date, idx) => {
+          const isActive = isToday(date || new Date());
+          const activities = date ? getActivitiesForDate(date) : [];
+          const hasActivity = activities.length > 0;
+          const isEmpty = date === null;
 
           return (
             <DayContainer
-              key={index}
+              key={idx}
               $isActive={isActive}
-              $hasActivity={activities.length > 0}
-              $isEmpty={!isCurrentMonth}
-              $rowIndex={Math.floor(index / 7)}
-              $colIndex={index % 7}
-              tabIndex={isActive ? 0 : -1}
-              data-testid={day ? `day-${format(day, "d")}` : undefined}
+              $hasActivity={hasActivity}
+              $isEmpty={isEmpty}
+              $rowIndex={Math.floor(idx / 7)}
+              $colIndex={idx % 7}
+              tabIndex={0}
             >
-              {day && (
-                <DayNumber
-                  $hasActivity={activities.length > 0}
-                  $isActive={isActive}
-                >
-                  {format(day, "d")}
-                </DayNumber>
+              {date && (
+                <>
+                  <DayNumber $hasActivity={hasActivity} $isActive={isActive}>
+                    {format(date, "d")}
+                  </DayNumber>
+                  {activities.length > 0 && (
+                    <ActivityContainer>
+                      {activities.map((activity, activityIdx) => (
+                        <ActivityTitle
+                          key={activityIdx}
+                          $isActive={isActive}
+                        >
+                          {activity.title}
+                        </ActivityTitle>
+                      ))}
+                    </ActivityContainer>
+                  )}
+                </>
               )}
-              <ActivityContainer>
-                {activities.map((activity, i) => (
-                  <ActivityTitle key={i} $isActive={isActive}>
-                    {activity.title}
-                  </ActivityTitle>
-                ))}
-              </ActivityContainer>
             </DayContainer>
           );
         })}
@@ -356,4 +321,32 @@ const Calendar: React.FC<CalendarProps> = ({ programData }) => {
   );
 };
 
-export default Calendar;
+const App: React.FC = () => {
+  const [programData, setProgramData] = useState<TreatmentProgram | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:4000/api/treatment-program");
+        const data: TreatmentProgram = await response.json();
+        setProgramData(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (!programData) {
+    return <div>Loading...</div>; // Optionally show a loading state
+  }
+
+  return (
+    <div>
+      <Calendar programData={programData} />
+    </div>
+  );
+};
+
+export default App;

@@ -18,16 +18,30 @@ export default async function handler(req, res) {
     return;
   }
 
-  try {
-    if (req.method === 'GET') {
-      // Fetch data from PostgreSQL
-      const treatmentPrograms = await prisma.treatmentProgram.findMany();
-      res.status(200).json(treatmentPrograms);
-    } else {
-      res.setHeader('Allow', ['GET']);
-      res.status(405).end(`Method ${req.method} Not Allowed`);
+  // Handle GET method
+  if (req.method === 'GET') {
+    try {
+      const programs = await prisma.treatmentProgram.findMany({
+        orderBy: { week: 'asc' }
+      });
+      const organizedData = programs.reduce((acc, program) => {
+        if (!acc[program.week]) {
+          acc[program.week] = [];
+        }
+        acc[program.week].push({
+          weekday: program.weekday,
+          title: program.title,
+          completed: program.completed
+        });
+        return acc;
+      }, {});
+
+      res.status(200).json(organizedData);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch data' });
     }
-  } catch (error) {
-    res.status(500).json({ error: 'Error fetching data from the database' });
+  } else {
+    res.setHeader('Allow', ['GET']);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

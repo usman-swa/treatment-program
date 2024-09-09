@@ -10,8 +10,11 @@ generator client {
 // 20240909142402
 // http://localhost:4000/api/treatment-program
 
+// prisma/schema.prisma
+
 model TreatmentProgram {
   id        Int      @id @default(autoincrement())
+  week      String
   weekday   String
   title     String
   completed Boolean
