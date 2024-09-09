@@ -217,13 +217,11 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) 
     title: "",
     completed: false,
   });
-  
 
   const currentMonth = today;
   const start = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 });
   const end = endOfMonth(currentMonth);
 
-  // Generate the array of days (but filter out days that are not in the current month)
   const days: (Date | null)[] = [];
   let day = start;
   while (day <= end) {
@@ -264,13 +262,11 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) 
         if (activity.completed) {
           allActivities.push({ date: activityDate, title: activity.title });
         } else if (isBefore(activityDate, today)) {
-          // Move incomplete activities to today if they are overdue
           allActivities.push({
             date: today,
             title: `${activity.title} (Missed)`,
           });
         } else if (isAfter(activityDate, today)) {
-          // Add future activities
           allActivities.push({ date: activityDate, title: activity.title });
         }
       });
@@ -304,11 +300,8 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) 
       });
       const result = await response.json();
       if (response.ok) {
-        // Handle success
         console.log("Activity added:", result);
-        // Update programData or other state if needed
       } else {
-        // Handle error
         console.error("Error adding activity:", result.error);
       }
     } catch (error) {
@@ -317,64 +310,59 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) 
       setIsModalOpen(false);
     }
   };
-  
-  
 
   return (
     <CalendarContainer>
       <HeaderWrapper>
         <Header>Calendar</Header>
         <CalendarHeader>
-          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-            (dayName, idx) => (
-              <DayName key={idx}>{dayName}</DayName>
-            )
-          )}
+          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((dayName, idx) => (
+            <DayName key={idx}>{dayName}</DayName>
+          ))}
         </CalendarHeader>
       </HeaderWrapper>
       <AddActivityButton onClick={handleAddActivityClick}>Add Activity</AddActivityButton>
       <ModalOverlay isOpen={isModalOpen} onClick={handleCloseModal} />
       <Modal isOpen={isModalOpen}>
-      <form onSubmit={handleFormSubmit}>
-  <label>
-    Week:
-    <input
-      type="text"
-      name="week"
-      value={newActivity.week}
-      onChange={handleInputChange}
-    />
-  </label>
-  <label>
-    Weekday:
-    <input
-      type="text"
-      name="weekday"
-      value={newActivity.weekday}
-      onChange={handleInputChange}
-    />
-  </label>
-  <label>
-    Title:
-    <input
-      type="text"
-      name="title"
-      value={newActivity.title}
-      onChange={handleInputChange}
-    />
-  </label>
-  <label>
-    Completed:
-    <input
-      type="checkbox"
-      name="completed"
-      checked={newActivity.completed}
-      onChange={(e) => setNewActivity((prev) => ({ ...prev, completed: e.target.checked }))}
-    />
-  </label>
-  <button type="submit">Add Activity</button>
-</form>
-
+        <form onSubmit={handleFormSubmit}>
+          <label>
+            Week:
+            <input
+              type="text"
+              name="week"
+              value={newActivity.week}
+              onChange={handleInputChange}
+            />
+          </label>
+          <label>
+            Weekday:
+            <input
+              type="text"
+              name="weekday"
+              value={newActivity.weekday}
+              onChange={handleInputChange}
+            />
+          </label>
+          <label>
+            Title:
+            <input
+              type="text"
+              name="title"
+              value={newActivity.title}
+              onChange={handleInputChange}
+            />
+          </label>
+          <label>
+            Completed:
+            <input
+              type="checkbox"
+              name="completed"
+              checked={newActivity.completed}
+              onChange={(e) => setNewActivity((prev) => ({ ...prev, completed: e.target.checked }))}
+            />
+          </label>
+          <button type="submit">Add Activity</button>
+        </form>
       </Modal>
 
       <CalendarBody>
@@ -417,41 +405,4 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) 
   );
 };
 
-const App: React.FC = () => {
-  const [programData, setProgramData] = useState<TreatmentProgram | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (!isLoading) return;
-
-    const fetchData = async () => {
-      try {
-        const response = await fetch("http://localhost:4000/api/treatment-program");
-        const data: TreatmentProgram = await response.json();
-        setProgramData(data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [isLoading]);
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!programData) {
-    return <div>No Data Available</div>; // Optionally handle the case when no data is available
-  }
-
-  return (
-    <div>
-      <Calendar programData={programData} />
-    </div>
-  );
-};
-
-export default App;
+export default Calendar;
