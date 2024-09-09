@@ -26,6 +26,40 @@ interface TreatmentProgram {
   [key: string]: Activity[];
 }
 
+const AddActivityButton = styled.button`
+  background-color: rgb(93, 175, 116);
+  border: none;
+  color: white;
+  font-size: 16px;
+  padding: 10px 20px;
+  cursor: pointer;
+  margin-bottom: 20px;
+`;
+
+const Modal = styled.div<{ isOpen: boolean }>`
+  display: ${({ isOpen }) => (isOpen ? "block" : "none")};
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border: 2px solid #ccc;
+  padding: 20px;
+  z-index: 1000;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+`;
+
+const ModalOverlay = styled.div<{ isOpen: boolean }>`
+  display: ${({ isOpen }) => (isOpen ? "block" : "none")};
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+`;
+
 const CalendarContainer = styled.div`
   background-color: white;
   border: 4px solid rgb(93, 175, 116);
@@ -171,15 +205,20 @@ const CalendarBody = styled.div`
   min-height: 450px;
 `;
 
-interface CalendarProps {
-  programData: TreatmentProgram;
-}
-
-const Calendar: React.FC<CalendarProps> = ({ programData }) => {
+const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) => {
   const today = useMemo(() => new Date(), []);
   const [adjustedActivities, setAdjustedActivities] = useState<
     { date: Date; title: string }[]
   >([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newActivity, setNewActivity] = useState({
+    week: "",
+    weekday: "",
+    title: "",
+    completed: false,
+  });
+  
+
   const currentMonth = today;
   const start = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 });
   const end = endOfMonth(currentMonth);
@@ -194,22 +233,21 @@ const Calendar: React.FC<CalendarProps> = ({ programData }) => {
 
   const filledDays = days.filter((date): date is Date => date !== null && isSameMonth(date, currentMonth));
 
-
   const getActivitiesForDate = (date: Date) =>
     adjustedActivities.filter((activity) => isSameDay(date, activity.date));
 
   useEffect(() => {
     if (!programData) return;
-  
+
     const treatmentProgram = programData as TreatmentProgram;
     const allActivities: { date: Date; title: string }[] = [];
-  
+
     const baseDate = new Date(2024, 8, 2); // Define the base date
-  
+
     Object.keys(treatmentProgram).forEach((week) => {
       const weekNumber = parseInt(week.replace("week", ""), 10);
       const weekStartDate = addDays(baseDate, (weekNumber - 36) * 7);
-  
+
       treatmentProgram[week].forEach((activity) => {
         const dayIndex = [
           "MONDAY",
@@ -220,9 +258,9 @@ const Calendar: React.FC<CalendarProps> = ({ programData }) => {
           "SATURDAY",
           "SUNDAY",
         ].indexOf(activity.weekday.toUpperCase());
-  
+
         const activityDate = addDays(weekStartDate, dayIndex);
-  
+
         if (activity.completed) {
           allActivities.push({ date: activityDate, title: activity.title });
         } else if (isBefore(activityDate, today)) {
@@ -237,9 +275,49 @@ const Calendar: React.FC<CalendarProps> = ({ programData }) => {
         }
       });
     });
-  
+
     setAdjustedActivities(allActivities);
   }, [programData, today]);
+
+  const handleAddActivityClick = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setNewActivity((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const response = await fetch("http://localhost:4000/api/create-activity", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newActivity),
+      });
+      const result = await response.json();
+      if (response.ok) {
+        // Handle success
+        console.log("Activity added:", result);
+        // Update programData or other state if needed
+      } else {
+        // Handle error
+        console.error("Error adding activity:", result.error);
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    } finally {
+      setIsModalOpen(false);
+    }
+  };
+  
   
 
   return (
@@ -254,6 +332,50 @@ const Calendar: React.FC<CalendarProps> = ({ programData }) => {
           )}
         </CalendarHeader>
       </HeaderWrapper>
+      <AddActivityButton onClick={handleAddActivityClick}>Add Activity</AddActivityButton>
+      <ModalOverlay isOpen={isModalOpen} onClick={handleCloseModal} />
+      <Modal isOpen={isModalOpen}>
+      <form onSubmit={handleFormSubmit}>
+  <label>
+    Week:
+    <input
+      type="text"
+      name="week"
+      value={newActivity.week}
+      onChange={handleInputChange}
+    />
+  </label>
+  <label>
+    Weekday:
+    <input
+      type="text"
+      name="weekday"
+      value={newActivity.weekday}
+      onChange={handleInputChange}
+    />
+  </label>
+  <label>
+    Title:
+    <input
+      type="text"
+      name="title"
+      value={newActivity.title}
+      onChange={handleInputChange}
+    />
+  </label>
+  <label>
+    Completed:
+    <input
+      type="checkbox"
+      name="completed"
+      checked={newActivity.completed}
+      onChange={(e) => setNewActivity((prev) => ({ ...prev, completed: e.target.checked }))}
+    />
+  </label>
+  <button type="submit">Add Activity</button>
+</form>
+
+      </Modal>
 
       <CalendarBody>
         {filledDays.map((date, idx) => {
@@ -295,7 +417,6 @@ const Calendar: React.FC<CalendarProps> = ({ programData }) => {
   );
 };
 
-
 const App: React.FC = () => {
   const [programData, setProgramData] = useState<TreatmentProgram | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -332,6 +453,5 @@ const App: React.FC = () => {
     </div>
   );
 };
-
 
 export default App;
