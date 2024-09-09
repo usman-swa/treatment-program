@@ -171,23 +171,6 @@ const CalendarBody = styled.div`
   min-height: 450px;
 `;
 
-// Utility function to fill in the last row with null values if needed
-const fillInLastRow = (
-  days: (Date | null)[],
-  totalCells: number
-): (Date | null)[] => {
-  const numDays = days.length;
-  const fillCells = totalCells - numDays;
-
-  const updatedDays = [...days];
-
-  for (let i = 0; i < fillCells; i++) {
-    updatedDays.push(null);
-  }
-
-  return updatedDays;
-};
-
 interface CalendarProps {
   programData: TreatmentProgram;
 }
@@ -201,20 +184,19 @@ const Calendar: React.FC<CalendarProps> = ({ programData }) => {
   const start = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 });
   const end = endOfMonth(currentMonth);
 
+  // Generate the array of days (but filter out days that are not in the current month)
   const days: (Date | null)[] = [];
   let day = start;
-  while (isBefore(day, addDays(end, 1))) {
+  while (day <= end) {
     days.push(day);
     day = addDays(day, 1);
   }
 
-  const filledDays = fillInLastRow(days, 42);
+  const filledDays = days.filter((date): date is Date => date !== null && isSameMonth(date, currentMonth));
+
 
   const getActivitiesForDate = (date: Date) =>
     adjustedActivities.filter((activity) => isSameDay(date, activity.date));
-
-  const isDayInCurrentMonth = (date: Date | null) =>
-    date ? isSameMonth(date, currentMonth) : false;
 
   useEffect(() => {
     if (!programData) return;
@@ -256,12 +238,8 @@ const Calendar: React.FC<CalendarProps> = ({ programData }) => {
       });
     });
   
-    console.log('Adjusted Activities:', allActivities); // Debugging
-  
     setAdjustedActivities(allActivities);
   }, [programData, today]);
-  
-  
   
 
   return (
@@ -282,14 +260,13 @@ const Calendar: React.FC<CalendarProps> = ({ programData }) => {
           const isActive = isToday(date || new Date());
           const activities = date ? getActivitiesForDate(date) : [];
           const hasActivity = activities.length > 0;
-          const isEmpty = date === null;
 
           return (
             <DayContainer
               key={idx}
               $isActive={isActive}
               $hasActivity={hasActivity}
-              $isEmpty={isEmpty}
+              $isEmpty={false} // Since we're only rendering valid days
               $rowIndex={Math.floor(idx / 7)}
               $colIndex={idx % 7}
               tabIndex={0}
@@ -302,10 +279,7 @@ const Calendar: React.FC<CalendarProps> = ({ programData }) => {
                   {activities.length > 0 && (
                     <ActivityContainer>
                       {activities.map((activity, activityIdx) => (
-                        <ActivityTitle
-                          key={activityIdx}
-                          $isActive={isActive}
-                        >
+                        <ActivityTitle key={activityIdx} $isActive={isActive}>
                           {activity.title}
                         </ActivityTitle>
                       ))}
@@ -321,10 +295,14 @@ const Calendar: React.FC<CalendarProps> = ({ programData }) => {
   );
 };
 
+
 const App: React.FC = () => {
   const [programData, setProgramData] = useState<TreatmentProgram | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!isLoading) return;
+
     const fetchData = async () => {
       try {
         const response = await fetch("http://localhost:4000/api/treatment-program");
@@ -332,14 +310,20 @@ const App: React.FC = () => {
         setProgramData(data);
       } catch (error) {
         console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [isLoading]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   if (!programData) {
-    return <div>Loading...</div>; // Optionally show a loading state
+    return <div>No Data Available</div>; // Optionally handle the case when no data is available
   }
 
   return (
@@ -348,5 +332,6 @@ const App: React.FC = () => {
     </div>
   );
 };
+
 
 export default App;
