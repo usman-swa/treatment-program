@@ -29,7 +29,7 @@ app.prepare().then(() => {
         },
       ],
     },
-    apis: ['./pages/api/*.js'],  // Path to your API files for documentation
+    apis: ['./pages/api/*.js'],  // Adjust if necessary
   });
 
   // Swagger UI route

@@ -222,7 +222,7 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({
     const treatmentProgram = programData as TreatmentProgram;
     const allActivities: { date: Date; title: string }[] = [];
 
-    const baseDate = new Date(2024, 8, 1); // Adjust base date if needed
+    const baseDate = new Date(2024, 8, 2); // Adjust base date if needed
 
     Object.keys(treatmentProgram).forEach((week) => {
       const weekNumber = parseInt(week.replace("week", ""), 10);
