@@ -21,6 +21,40 @@ function runMiddleware(req, res, fn) {
   });
 }
 
+/**
+ * @openapi
+ * /api/create-activity:
+ *   post:
+ *     summary: Create a new activity
+ *     description: Adds a new activity to the treatment program.
+ *     requestBody:
+ *       description: The activity to be created
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               week:
+ *                 type: string
+ *               weekday:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               completed:
+ *                 type: boolean
+ *             required:
+ *               - week
+ *               - weekday
+ *               - title
+ *     responses:
+ *       '201':
+ *         description: Successfully created activity
+ *       '400':
+ *         description: Bad request
+ *       '500':
+ *         description: Internal server error
+ */
+
 export default async function handler(req, res) {
   try {
     await runMiddleware(req, res, cors);

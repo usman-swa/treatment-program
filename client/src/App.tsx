@@ -1,7 +1,13 @@
+import { ApiTreatmentProgramGet200ResponseValueInner, DefaultApi } from "./api"; // Adjust the import path as needed
 import React, { useEffect, useState } from "react";
 
 import Calendar from "./components/Calendar";
 import { TreatmentProgram } from "./types";
+
+// Define an interface that matches your API response structure
+interface ApiResponse {
+  [week: string]: ApiTreatmentProgramGet200ResponseValueInner[];
+}
 
 const App: React.FC = () => {
   const [programData, setProgramData] = useState<TreatmentProgram | null>(null);
@@ -12,9 +18,23 @@ const App: React.FC = () => {
 
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:4000/api/treatment-program");
-        const data: TreatmentProgram = await response.json();
-        setProgramData(data);
+        // Create an instance of the generated API client
+        const apiClient = new DefaultApi();
+        // Call the API method to get the treatment program data
+        const response = await apiClient.apiTreatmentProgramGet();
+        const apiData: ApiResponse = response.data;
+
+        // Map API response to TreatmentProgram type
+        const treatmentProgram: TreatmentProgram = {};
+        for (const [week, activities] of Object.entries(apiData)) {
+          treatmentProgram[week] = activities.map(activity => ({
+            weekday: activity.weekday || "",
+            title: activity.title || "",
+            completed: activity.completed || false
+          }));
+        }
+
+        setProgramData(treatmentProgram);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {

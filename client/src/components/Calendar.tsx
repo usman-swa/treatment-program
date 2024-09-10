@@ -13,6 +13,7 @@ import {
   startOfWeek,
 } from "date-fns";
 
+import { DefaultApi } from "../api";
 import styled from "styled-components";
 
 // Define interfaces and styled components as before
@@ -276,27 +277,18 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({
     console.log("New Activity:", newActivity);
 
     try {
-      // Assuming you need to send data to the server or update state
-      // Example of sending a POST request (you might need to adjust the URL and request options)
-      const response = await fetch(
-        "http://localhost:4000/api/create-activity",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newActivity),
-        }
-      );
+      // Use the generated API client to create the activity
+      const apiClient = new DefaultApi();
+      const response = await apiClient.apiCreateActivityPost(newActivity);
 
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
+      if (response.status === 200) {
+        // Handle successful response
+        console.log("Activity added successfully");
+        // Optionally, you could update local state or refetch data here
+        handleCloseModal();
+      } else {
+        throw new Error("Failed to add activity");
       }
-      // Handle successful response
-      console.log("Activity added successfully");
-
-      // Optionally, you could update local state or refetch data here
-      handleCloseModal();
     } catch (error) {
       console.error("Error adding activity:", error);
     }
