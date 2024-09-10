@@ -1,0 +1,102 @@
+openapi: 3.0.0
+info:
+  title: Treatment Program API
+  version: 1.0.0
+  description: API for managing treatment programs and activities.
+paths:
+  /api/treatment-program:
+    get:
+      summary: Retrieve the treatment program data
+      responses:
+        '200':
+          description: A list of treatment programs
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      weekday:
+                        type: string
+                      title:
+                        type: string
+                      completed:
+                        type: boolean
+    options:
+      summary: CORS preflight request
+      responses:
+        '200':
+          description: CORS preflight response
+          headers:
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+
+  /api/create-activity:
+    post:
+      summary: Create a new activity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                week:
+                  type: string
+                weekday:
+                  type: string
+                title:
+                  type: string
+                completed:
+                  type: boolean
+              required:
+                - week
+                - weekday
+                - title
+      responses:
+        '201':
+          description: Activity created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  week:
+                    type: string
+                  weekday:
+                    type: string
+                  title:
+                    type: string
+                  completed:
+                    type: boolean
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+    options:
+      summary: CORS preflight request
+      responses:
+        '200':
+          description: CORS preflight response
+          headers:
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
