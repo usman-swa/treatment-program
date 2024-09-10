@@ -1,3 +1,4 @@
+import { Button, Modal as MuiModal, TextField } from "@mui/material";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   addDays,
@@ -23,7 +24,7 @@ interface Activity {
 }
 
 interface TreatmentProgram {
-  [key: string]: Activity[];
+  [week: string]: Activity[];
 }
 
 const AddActivityButton = styled.button`
@@ -33,20 +34,6 @@ const AddActivityButton = styled.button`
   font-size: 16px;
   padding: 10px 20px;
   cursor: pointer;
-  margin-bottom: 20px;
-`;
-
-const Modal = styled.div<{ isOpen: boolean }>`
-  display: ${({ isOpen }) => (isOpen ? "block" : "none")};
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: white;
-  border: 2px solid #ccc;
-  padding: 20px;
-  z-index: 1000;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 `;
 
 const ModalOverlay = styled.div<{ isOpen: boolean }>`
@@ -75,30 +62,26 @@ const CalendarContainer = styled.div`
 const HeaderWrapper = styled.div`
   background-color: white;
   border-bottom: 1px solid rgb(93, 175, 116);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
 `;
 
 const Header = styled.h1`
-  align-items: center;
   background-color: white;
-  border-bottom: 2px solid rgb(93, 175, 116);
-  box-sizing: border-box;
   color: rgba(0, 0, 0, 0.8);
-  display: flex;
   font-family: "Fjalla One", sans-serif;
   font-size: 48px;
   font-weight: 700;
-  height: 90px;
-  justify-content: center;
-  line-height: 1.3;
   margin: 0;
-  padding: 0;
+  padding: 20px 0;
   text-align: center;
 `;
 
 const CalendarHeader = styled.div`
   background-color: white;
   border-bottom: 2px solid rgb(93, 175, 116);
-  box-sizing: border-box;
   color: rgba(0, 0, 0, 0.8);
   display: grid;
   font-family: "Work Sans", sans-serif;
@@ -112,8 +95,6 @@ const CalendarHeader = styled.div`
 const DayName = styled.div`
   align-items: center;
   border-right: 2px solid rgb(93, 175, 116);
-  box-sizing: border-box;
-  color: rgba(0, 0, 0, 0.8);
   display: flex;
   font-family: "Work Sans", sans-serif;
   font-size: 16px;
@@ -171,7 +152,6 @@ const DayNumber = styled.div<{ $hasActivity: boolean; $isActive: boolean }>`
       : props.$hasActivity
       ? "rgb(93, 175, 116)"
       : "rgba(0, 0, 0, 0.8)"};
-  box-sizing: border-box;
   line-height: 1;
   margin: 0;
 `;
@@ -183,21 +163,16 @@ const ActivityContainer = styled.div`
 `;
 
 const ActivityTitle = styled.div<{ $isActive: boolean }>`
-  box-sizing: border-box;
   color: ${(props) => (props.$isActive ? "white" : "black")};
   font-family: "Libre Franklin", sans-serif;
   font-size: 10px;
   font-weight: 400;
   line-height: 1.2;
-  overflow-wrap: break-word;
   text-align: center;
   text-transform: uppercase;
-  white-space: normal;
-  word-wrap: break-word;
 `;
 
 const CalendarBody = styled.div`
-  box-sizing: border-box;
   display: grid;
   gap: 0px;
   grid-template-columns: repeat(7, 1fr);
@@ -246,7 +221,7 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) 
       const weekNumber = parseInt(week.replace("week", ""), 10);
       const weekStartDate = addDays(baseDate, (weekNumber - 36) * 7);
 
-      treatmentProgram[week].forEach((activity) => {
+      (treatmentProgram[week] as Activity[]).forEach((activity) => {
         const dayIndex = [
           "MONDAY",
           "TUESDAY",
@@ -290,117 +265,93 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) 
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    try {
-      const response = await fetch("http://localhost:4000/api/create-activity", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newActivity),
-      });
-      const result = await response.json();
-      if (response.ok) {
-        console.log("Activity added:", result);
-      } else {
-        console.error("Error adding activity:", result.error);
-      }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    } finally {
-      setIsModalOpen(false);
-    }
+    // Handle form submission logic here
+    // e.g., send data to server or update local state
+    console.log(newActivity);
+    handleCloseModal();
   };
 
   return (
     <CalendarContainer>
       <HeaderWrapper>
         <Header>Calendar</Header>
-        <CalendarHeader>
-          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((dayName, idx) => (
-            <DayName key={idx}>{dayName}</DayName>
-          ))}
-        </CalendarHeader>
+        <AddActivityButton onClick={handleAddActivityClick}>Add Activity</AddActivityButton>
       </HeaderWrapper>
-      <AddActivityButton onClick={handleAddActivityClick}>Add Activity</AddActivityButton>
-      <ModalOverlay isOpen={isModalOpen} onClick={handleCloseModal} />
-      <Modal isOpen={isModalOpen}>
-        <form onSubmit={handleFormSubmit}>
-          <label>
-            Week:
-            <input
-              type="text"
-              name="week"
-              value={newActivity.week}
-              onChange={handleInputChange}
-            />
-          </label>
-          <label>
-            Weekday:
-            <input
-              type="text"
-              name="weekday"
-              value={newActivity.weekday}
-              onChange={handleInputChange}
-            />
-          </label>
-          <label>
-            Title:
-            <input
-              type="text"
-              name="title"
-              value={newActivity.title}
-              onChange={handleInputChange}
-            />
-          </label>
-          <label>
-            Completed:
-            <input
-              type="checkbox"
-              name="completed"
-              checked={newActivity.completed}
-              onChange={(e) => setNewActivity((prev) => ({ ...prev, completed: e.target.checked }))}
-            />
-          </label>
-          <button type="submit">Add Activity</button>
-        </form>
-      </Modal>
-
+      <CalendarHeader>
+        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+          <DayName key={day}>{day}</DayName>
+        ))}
+      </CalendarHeader>
       <CalendarBody>
-        {filledDays.map((date, idx) => {
-          const isActive = isToday(date || new Date());
-          const activities = date ? getActivitiesForDate(date) : [];
-          const hasActivity = activities.length > 0;
-
-          return (
-            <DayContainer
-              key={idx}
-              $isActive={isActive}
-              $hasActivity={hasActivity}
-              $isEmpty={false} // Since we're only rendering valid days
-              $rowIndex={Math.floor(idx / 7)}
-              $colIndex={idx % 7}
-              tabIndex={0}
+        {filledDays.map((date, index) => (
+          <DayContainer
+            key={index}
+            $isActive={isToday(date)}
+            $hasActivity={getActivitiesForDate(date).length > 0}
+            $isEmpty={getActivitiesForDate(date).length === 0}
+            $rowIndex={Math.floor(index / 7)}
+            $colIndex={index % 7}
+            tabIndex={0}
+          >
+            <DayNumber
+              $hasActivity={getActivitiesForDate(date).length > 0}
+              $isActive={isToday(date)}
             >
-              {date && (
-                <>
-                  <DayNumber $hasActivity={hasActivity} $isActive={isActive}>
-                    {format(date, "d")}
-                  </DayNumber>
-                  {activities.length > 0 && (
-                    <ActivityContainer>
-                      {activities.map((activity, activityIdx) => (
-                        <ActivityTitle key={activityIdx} $isActive={isActive}>
-                          {activity.title}
-                        </ActivityTitle>
-                      ))}
-                    </ActivityContainer>
-                  )}
-                </>
-              )}
-            </DayContainer>
-          );
-        })}
+              {format(date, "d")}
+            </DayNumber>
+            <ActivityContainer>
+              {getActivitiesForDate(date).map((activity, idx) => (
+                <ActivityTitle key={idx} $isActive={isToday(date)}>
+                  {activity.title}
+                </ActivityTitle>
+              ))}
+            </ActivityContainer>
+          </DayContainer>
+        ))}
       </CalendarBody>
+
+      {/* Modal for Adding Activities */}
+      <ModalOverlay isOpen={isModalOpen}>
+        <MuiModal
+          open={isModalOpen}
+          onClose={handleCloseModal}
+          aria-labelledby="add-activity-modal"
+          aria-describedby="modal-to-add-new-activities"
+        >
+          <div style={{ backgroundColor: 'white', padding: '20px', margin: 'auto', maxWidth: '500px' }}>
+            <h2 id="add-activity-modal">Add New Activity</h2>
+            <form onSubmit={handleFormSubmit}>
+              <TextField
+                label="Week"
+                name="week"
+                value={newActivity.week}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+              />
+              <TextField
+                label="Weekday"
+                name="weekday"
+                value={newActivity.weekday}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+              />
+              <TextField
+                label="Title"
+                name="title"
+                value={newActivity.title}
+                onChange={handleInputChange}
+                fullWidth
+                margin="normal"
+              />
+              <Button type="submit" color="primary">
+                Add Activity
+              </Button>
+            </form>
+          </div>
+        </MuiModal>
+      </ModalOverlay>
     </CalendarContainer>
   );
 };
