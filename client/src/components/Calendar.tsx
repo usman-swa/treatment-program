@@ -345,7 +345,7 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) 
                 fullWidth
                 margin="normal"
               />
-              <Button type="submit" color="primary">
+              <Button type="submit" color="success" variant="outlined" fullWidth>
                 Add Activity
               </Button>
             </form>
