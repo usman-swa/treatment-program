@@ -265,10 +265,31 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) 
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Handle form submission logic here
-    // e.g., send data to server or update local state
-    console.log(newActivity);
-    handleCloseModal();
+    console.log("Form submitted");
+    console.log("New Activity:", newActivity);
+    
+    try {
+      // Assuming you need to send data to the server or update state
+      // Example of sending a POST request (you might need to adjust the URL and request options)
+      const response = await fetch('http://localhost:4000/api/create-activity', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newActivity),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      // Handle successful response
+      console.log("Activity added successfully");
+  
+      // Optionally, you could update local state or refetch data here
+      handleCloseModal();
+    } catch (error) {
+      console.error("Error adding activity:", error);
+    }
   };
 
   return (
