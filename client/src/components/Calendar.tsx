@@ -180,7 +180,9 @@ const CalendarBody = styled.div`
   min-height: 450px;
 `;
 
-const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) => {
+const Calendar: React.FC<{ programData: TreatmentProgram }> = ({
+  programData,
+}) => {
   const today = useMemo(() => new Date(), []);
   const [adjustedActivities, setAdjustedActivities] = useState<
     { date: Date; title: string }[]
@@ -204,7 +206,9 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) 
     day = addDays(day, 1);
   }
 
-  const filledDays = days.filter((date): date is Date => date !== null && isSameMonth(date, currentMonth));
+  const filledDays = days.filter(
+    (date): date is Date => date !== null && isSameMonth(date, currentMonth)
+  );
 
   const getActivitiesForDate = (date: Date) =>
     adjustedActivities.filter((activity) => isSameDay(date, activity.date));
@@ -215,7 +219,7 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) 
     const treatmentProgram = programData as TreatmentProgram;
     const allActivities: { date: Date; title: string }[] = [];
 
-    const baseDate = new Date(2024, 8, 2); // Define the base date
+    const baseDate = new Date(2024, 8, 1); // Adjust base date if needed
 
     Object.keys(treatmentProgram).forEach((week) => {
       const weekNumber = parseInt(week.replace("week", ""), 10);
@@ -233,6 +237,7 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) 
         ].indexOf(activity.weekday.toUpperCase());
 
         const activityDate = addDays(weekStartDate, dayIndex);
+        console.log("Computed Activity Date:", activityDate); // Debugging
 
         if (activity.completed) {
           allActivities.push({ date: activityDate, title: activity.title });
@@ -267,24 +272,27 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) 
     e.preventDefault();
     console.log("Form submitted");
     console.log("New Activity:", newActivity);
-    
+
     try {
       // Assuming you need to send data to the server or update state
       // Example of sending a POST request (you might need to adjust the URL and request options)
-      const response = await fetch('http://localhost:4000/api/create-activity', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newActivity),
-      });
-  
+      const response = await fetch(
+        "http://localhost:4000/api/create-activity",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newActivity),
+        }
+      );
+
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error("Network response was not ok");
       }
       // Handle successful response
       console.log("Activity added successfully");
-  
+
       // Optionally, you could update local state or refetch data here
       handleCloseModal();
     } catch (error) {
@@ -296,7 +304,9 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) 
     <CalendarContainer>
       <HeaderWrapper>
         <Header>Calendar</Header>
-        <AddActivityButton onClick={handleAddActivityClick}>Add Activity</AddActivityButton>
+        <AddActivityButton onClick={handleAddActivityClick}>
+          Add Activity
+        </AddActivityButton>
       </HeaderWrapper>
       <CalendarHeader>
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
@@ -339,7 +349,14 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) 
           aria-labelledby="add-activity-modal"
           aria-describedby="modal-to-add-new-activities"
         >
-          <div style={{ backgroundColor: 'white', padding: '20px', margin: 'auto', maxWidth: '500px' }}>
+          <div
+            style={{
+              backgroundColor: "white",
+              padding: "20px",
+              margin: "auto",
+              maxWidth: "500px",
+            }}
+          >
             <h2 id="add-activity-modal">Add New Activity</h2>
             <form onSubmit={handleFormSubmit}>
               <TextField
@@ -366,7 +383,12 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({ programData }) 
                 fullWidth
                 margin="normal"
               />
-              <Button type="submit" color="success" variant="outlined" fullWidth>
+              <Button
+                type="submit"
+                color="success"
+                variant="outlined"
+                fullWidth
+              >
                 Add Activity
               </Button>
             </form>
