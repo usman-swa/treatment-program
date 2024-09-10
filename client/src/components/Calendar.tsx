@@ -283,33 +283,63 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({
     setNewActivity({ ...newActivity, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+  
     if (!newActivity.week || !newActivity.weekday || !newActivity.title) {
-      setError("All fields are required.");
+      setError("Please fill out all fields.");
       return;
     }
-
+  
     try {
       setLoading(true);
-      setError(null);
-      setSuccessMessage(null);
-
-      const api = new DefaultApi();
-      await api.apiCreateActivityPost({
+  
+      const api = new DefaultApi(); // Assuming you've configured the API client
+      const response = await api.apiCreateActivityPost({
         week: newActivity.week,
         weekday: newActivity.weekday,
         title: newActivity.title,
+        completed: newActivity.completed,
       });
-
-      setSuccessMessage("Activity successfully added.");
-      closeModal();
-    } catch (err) {
-      setError("Failed to add activity.");
+  
+      if (response.status === 201) {
+        // Compute the new activity date
+        const baseDate = new Date(2024, 8, 2); // Adjust base date if needed
+        const weekNumber = parseInt(newActivity.week.replace("week", ""), 10);
+        const weekStartDate = addDays(baseDate, (weekNumber - 36) * 7);
+        const dayIndex = [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+          "sunday",
+        ].indexOf(newActivity.weekday.toLowerCase());
+        const activityDate = addDays(weekStartDate, dayIndex);
+  
+        const addedActivity = {
+          date: activityDate,
+          title: newActivity.title,
+        };
+  
+        // Update the adjustedActivities state
+        setAdjustedActivities((prevActivities) => [
+          ...prevActivities,
+          addedActivity,
+        ]);
+  
+        setSuccessMessage("Activity added successfully.");
+        closeModal();
+      } else {
+        throw new Error("Failed to add activity.");
+      }
+    } catch (error) {
+      setError("Error adding activity. Please try again.");
     } finally {
       setLoading(false);
     }
-  };
+  };  
 
   return (
     <>
