@@ -63,8 +63,8 @@ const HeaderWrapper = styled.div`
   background-color: white;
   border-bottom: 1px solid rgb(93, 175, 116);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: center; /* Center content horizontally */
+  align-items: center; /* Center content vertically */
   padding: 0 20px;
 `;
 
@@ -77,6 +77,8 @@ const Header = styled.h1`
   margin: 0;
   padding: 20px 0;
   text-align: center;
+  margin-left: 108px;
+  flex: 1; /* Take up remaining space */
 `;
 
 const CalendarHeader = styled.div`
