@@ -1,4 +1,4 @@
-import { ApiTreatmentProgramGet200ResponseValueInner, DefaultApi } from "./api"; // Adjust the import path as needed
+import { ApiCreateActivityPost201Response, ApiTreatmentProgramGet200ResponseValueInner, DefaultApi } from "./api"; // Adjust the import path as needed
 import React, { useEffect, useState } from "react";
 
 import Calendar from "./components/Calendar";
@@ -10,7 +10,7 @@ interface ApiResponse {
 }
 
 const App: React.FC = () => {
-  const [programData, setProgramData] = useState<TreatmentProgram | null>(null);
+  const [programData, setProgramData] = useState<ApiCreateActivityPost201Response | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

@@ -1,3 +1,4 @@
+import { ApiCreateActivityPost201Response, DefaultApi } from "../api";
 import {
   Box,
   Button,
@@ -20,20 +21,12 @@ import {
   startOfWeek,
 } from "date-fns";
 
-import { DefaultApi } from "../api";
+import LanguageSwitcher from "./LanguageSwitcher";
+import { TreatmentProgram } from "../types";
 import styled from "styled-components";
+import { useTranslation } from 'react-i18next';
 
 // Define interfaces and styled components as before
-
-interface Activity {
-  weekday: string;
-  title: string;
-  completed: boolean;
-}
-
-interface TreatmentProgram {
-  [week: string]: Activity[];
-}
 
 const AddActivityButton = styled.button`
   background-color: rgb(93, 175, 116);
@@ -195,9 +188,10 @@ const modalStyle = {
   gap: "16px",
 };
 
-const Calendar: React.FC<{ programData: TreatmentProgram }> = ({
+const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
   programData,
 }) => {
+  const { t } = useTranslation();
   const today = useMemo(() => new Date(), []);
   const [adjustedActivities, setAdjustedActivities] = useState<
     { date: Date; title: string }[]
@@ -243,7 +237,7 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({
       const weekNumber = parseInt(week.replace("week", ""), 10);
       const weekStartDate = addDays(baseDate, (weekNumber - 36) * 7);
 
-      (treatmentProgram[week] as Activity[]).forEach((activity) => {
+      (treatmentProgram[week] as ApiCreateActivityPost201Response[]).forEach((activity) => {
         const dayIndex = [
           "MONDAY",
           "TUESDAY",
@@ -252,12 +246,12 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({
           "FRIDAY",
           "SATURDAY",
           "SUNDAY",
-        ].indexOf(activity.weekday.toUpperCase());
+        ].indexOf((activity.weekday ?? "").toUpperCase());
 
         const activityDate = addDays(weekStartDate, dayIndex);
 
         if (activity.completed) {
-          allActivities.push({ date: activityDate, title: activity.title });
+          allActivities.push({ date: activityDate, title: activity.title ?? "Untitled Activity" });
         } else if (isBefore(activityDate, today)) {
           allActivities.push({
             date: today,
@@ -345,7 +339,8 @@ const Calendar: React.FC<{ programData: TreatmentProgram }> = ({
     <>
       <CalendarContainer>
         <HeaderWrapper>
-          <Header>Calendar</Header>
+          <Header>{t('CalendarTitle')}</Header>
+          <LanguageSwitcher />
           <AddActivityButton onClick={openModal}>
             Add Activity
           </AddActivityButton>
