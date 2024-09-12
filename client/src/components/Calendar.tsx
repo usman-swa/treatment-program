@@ -1,3 +1,8 @@
+import {
+  ADD_ACTIVITY,
+  SET_ACTIVITIES,
+  useCalendar,
+} from "../context/CalendarContext";
 import { ApiCreateActivityPost201Response, DefaultApi } from "../api";
 import {
   Box,
@@ -24,7 +29,7 @@ import {
 import LanguageSwitcher from "./LanguageSwitcher";
 import { TreatmentProgram } from "../types";
 import styled from "styled-components";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 
 // Define interfaces and styled components as before
 
@@ -193,9 +198,12 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
 }) => {
   const { t } = useTranslation();
   const today = useMemo(() => new Date(), []);
-  const [adjustedActivities, setAdjustedActivities] = useState<
-    { date: Date; title: string }[]
-  >([]);
+
+  const calendarContext = useCalendar(); // Access context
+  if (!calendarContext) {
+    throw new Error("useCalendar must be used within a CalendarProvider");
+  }
+  const { state, dispatch } = calendarContext; // Destructure state and dispatch from context
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newActivity, setNewActivity] = useState({
     week: "",
@@ -223,7 +231,7 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
   );
 
   const getActivitiesForDate = (date: Date) =>
-    adjustedActivities.filter((activity) => isSameDay(date, activity.date));
+    state.activities.filter((activity) => isSameDay(date, activity.date)); // Access activities from global state
 
   useEffect(() => {
     if (!programData) return;
@@ -237,38 +245,43 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
       const weekNumber = parseInt(week.replace("week", ""), 10);
       const weekStartDate = addDays(baseDate, (weekNumber - 36) * 7);
 
-      (treatmentProgram[week] as ApiCreateActivityPost201Response[]).forEach((activity) => {
-        const dayIndex = [
-          "MONDAY",
-          "TUESDAY",
-          "WEDNESDAY",
-          "THURSDAY",
-          "FRIDAY",
-          "SATURDAY",
-          "SUNDAY",
-        ].indexOf((activity.weekday ?? "").toUpperCase());
+      (treatmentProgram[week] as ApiCreateActivityPost201Response[]).forEach(
+        (activity) => {
+          const dayIndex = [
+            "MONDAY",
+            "TUESDAY",
+            "WEDNESDAY",
+            "THURSDAY",
+            "FRIDAY",
+            "SATURDAY",
+            "SUNDAY",
+          ].indexOf((activity.weekday ?? "").toUpperCase());
 
-        const activityDate = addDays(weekStartDate, dayIndex);
+          const activityDate = addDays(weekStartDate, dayIndex);
 
-        if (activity.completed) {
-          allActivities.push({ date: activityDate, title: activity.title ?? "Untitled Activity" });
-        } else if (isBefore(activityDate, today)) {
-          allActivities.push({
-            date: today,
-            title: activity.title + " (overdue)",
-          });
-        } else if (isAfter(activityDate, today)) {
-          // Handle future activities
-          allActivities.push({
-            date: activityDate,
-            title: activity.title + " (future)",
-          });
+          if (activity.completed) {
+            allActivities.push({
+              date: activityDate,
+              title: activity.title ?? "Untitled Activity",
+            });
+          } else if (isBefore(activityDate, today)) {
+            allActivities.push({
+              date: today,
+              title: activity.title + " (overdue)",
+            });
+          } else if (isAfter(activityDate, today)) {
+            // Handle future activities
+            allActivities.push({
+              date: activityDate,
+              title: activity.title + " (future)",
+            });
+          }
         }
-      });
+      );
     });
 
-    setAdjustedActivities(allActivities);
-  }, [programData, today]);
+    dispatch({ type: SET_ACTIVITIES, payload: allActivities }); // Update global state
+  }, [programData, today, dispatch]);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -279,26 +292,25 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-  
+
     if (!newActivity.week || !newActivity.weekday || !newActivity.title) {
       setError("Please fill out all fields.");
       return;
     }
-  
+
     try {
       setLoading(true);
-  
-      const api = new DefaultApi(); // Assuming you've configured the API client
+
+      const api = new DefaultApi();
       const response = await api.apiCreateActivityPost({
         week: newActivity.week,
         weekday: newActivity.weekday,
         title: newActivity.title,
         completed: newActivity.completed,
       });
-  
+
       if (response.status === 201) {
-        // Compute the new activity date
-        const baseDate = new Date(2024, 8, 2); // Adjust base date if needed
+        const baseDate = new Date(2024, 8, 2);
         const weekNumber = parseInt(newActivity.week.replace("week", ""), 10);
         const weekStartDate = addDays(baseDate, (weekNumber - 36) * 7);
         const dayIndex = [
@@ -311,18 +323,15 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
           "sunday",
         ].indexOf(newActivity.weekday.toLowerCase());
         const activityDate = addDays(weekStartDate, dayIndex);
-  
+
         const addedActivity = {
           date: activityDate,
           title: newActivity.title,
         };
-  
-        // Update the adjustedActivities state
-        setAdjustedActivities((prevActivities) => [
-          ...prevActivities,
-          addedActivity,
-        ]);
-  
+
+        // Dispatch action to add the new activity to global state
+        dispatch({ type: ADD_ACTIVITY, payload: addedActivity });
+
         setSuccessMessage("Activity added successfully.");
         closeModal();
       } else {
@@ -333,13 +342,14 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
     } finally {
       setLoading(false);
     }
-  };  
+  };
 
   return (
     <>
+      {/* Remaining code is the same */}
       <CalendarContainer>
         <HeaderWrapper>
-          <Header>{t('CalendarTitle')}</Header>
+          <Header>{t("CalendarTitle")}</Header>
           <LanguageSwitcher />
           <AddActivityButton onClick={openModal}>
             Add Activity

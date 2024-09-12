@@ -1,7 +1,12 @@
-import { ApiCreateActivityPost201Response, ApiTreatmentProgramGet200ResponseValueInner, DefaultApi } from "./api"; // Adjust the import path as needed
+import {
+  ApiCreateActivityPost201Response,
+  ApiTreatmentProgramGet200ResponseValueInner,
+  DefaultApi,
+} from "./api"; // Adjust the import path as needed
 import React, { useEffect, useState } from "react";
 
 import Calendar from "./components/Calendar";
+import { CalendarProvider } from "./context/CalendarContext";
 import { TreatmentProgram } from "./types";
 
 // Define an interface that matches your API response structure
@@ -10,7 +15,8 @@ interface ApiResponse {
 }
 
 const App: React.FC = () => {
-  const [programData, setProgramData] = useState<ApiCreateActivityPost201Response | null>(null);
+  const [programData, setProgramData] =
+    useState<ApiCreateActivityPost201Response | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -27,10 +33,10 @@ const App: React.FC = () => {
         // Map API response to TreatmentProgram type
         const treatmentProgram: TreatmentProgram = {};
         for (const [week, activities] of Object.entries(apiData)) {
-          treatmentProgram[week] = activities.map(activity => ({
+          treatmentProgram[week] = activities.map((activity) => ({
             weekday: activity.weekday || "",
             title: activity.title || "",
-            completed: activity.completed || false
+            completed: activity.completed || false,
           }));
         }
 
@@ -55,7 +61,9 @@ const App: React.FC = () => {
 
   return (
     <div>
-      <Calendar programData={programData} />
+      <CalendarProvider>
+        <Calendar programData={programData} />
+      </CalendarProvider>
     </div>
   );
 };
