@@ -1,5 +1,6 @@
 import {
   ADD_ACTIVITY,
+  Activity,
   SET_ACTIVITIES,
   useCalendar,
 } from "../context/CalendarContext";
@@ -234,10 +235,15 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
     state.activities.filter((activity) => isSameDay(date, activity.date)); // Access activities from global state
 
   useEffect(() => {
-    if (!programData) return;
+    if (!programData) {
+      console.warn("No programData available");
+      return;
+    }
+
+    console.log("Program Data:", programData);
 
     const treatmentProgram = programData as TreatmentProgram;
-    const allActivities: { date: Date; title: string }[] = [];
+    const allActivities: Activity[] = [];
 
     const baseDate = new Date(2024, 8, 2); // Adjust base date if needed
 
@@ -255,30 +261,55 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
             "FRIDAY",
             "SATURDAY",
             "SUNDAY",
-          ].indexOf((activity.weekday ?? "").toUpperCase());
+          ].indexOf(activity.weekday?.toUpperCase() || "");
+
+          if (dayIndex === -1) {
+            console.warn("Invalid weekday:", activity.weekday);
+            return;
+          }
 
           const activityDate = addDays(weekStartDate, dayIndex);
+          console.log("Activity Date:", activityDate);
 
-          if (activity.completed) {
+          let title = activity.title;
+          if (!activity.completed && isBefore(activityDate, today)) {
+            // Mark overdue activities
+            title += " (overdue)";
             allActivities.push({
-              date: activityDate,
-              title: activity.title ?? "Untitled Activity",
-            });
-          } else if (isBefore(activityDate, today)) {
-            allActivities.push({
-              date: today,
-              title: activity.title + " (overdue)",
+              date: today, // Move overdue activity to today
+              id: activity.id,
+              week: activity.week,
+              weekday: activity.weekday,
+              title,
+              completed: false,
             });
           } else if (isAfter(activityDate, today)) {
             // Handle future activities
+            title += " (future)";
             allActivities.push({
               date: activityDate,
-              title: activity.title + " (future)",
+              id: activity.id,
+              week: activity.week,
+              weekday: activity.weekday,
+              title,
+              completed: activity.completed,
+            });
+          } else {
+            // Handle activities that are neither overdue nor future
+            allActivities.push({
+              date: activityDate,
+              id: activity.id,
+              week: activity.week,
+              weekday: activity.weekday,
+              title,
+              completed: activity.completed,
             });
           }
         }
       );
     });
+
+    console.log("Processed Activities:", allActivities); // Log to see what is being processed
 
     dispatch({ type: SET_ACTIVITIES, payload: allActivities }); // Update global state
   }, [programData, today, dispatch]);
