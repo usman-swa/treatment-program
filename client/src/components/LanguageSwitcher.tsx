@@ -40,7 +40,7 @@ const LanguageSwitcher = () => {
         variant="outlined"
         startIcon={<ArrowDropDownIcon />}
         onClick={handleClick}
-        sx={{ borderRadius: "24px", textTransform: "none" }}
+        sx={{ borderRadius: "none", textTransform: "none", backgroundColor: "rgb(93, 175, 116)", color: "white" }}
       >
         Select Language
       </Button>

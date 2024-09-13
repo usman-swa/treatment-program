@@ -37,6 +37,7 @@ import { useTranslation } from "react-i18next";
 const AddActivityButton = styled.button`
   background-color: rgb(93, 175, 116);
   border: none;
+  border-radius: 24px;
   color: white;
   font-size: 16px;
   padding: 10px 20px;
@@ -73,7 +74,6 @@ const Header = styled.h1`
   margin: 0;
   padding: 20px 0;
   text-align: center;
-  margin-left: 108px;
   flex: 1;
 `;
 
@@ -380,8 +380,8 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
       {/* Remaining code is the same */}
       <CalendarContainer>
         <HeaderWrapper>
-          <Header>{t("CalendarTitle")}</Header>
           <LanguageSwitcher />
+          <Header>{t("CalendarTitle")}</Header>
           <AddActivityButton onClick={openModal}>
             Add Activity
           </AddActivityButton>
@@ -474,7 +474,7 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
           {loading ? (
             <CircularProgress />
           ) : (
-            <Button type="submit" variant="contained" color="primary">
+            <Button type="submit" variant="contained" sx={{ backgroundColor: "rgb(93, 175, 116)" }}>
               Add Activity
             </Button>
           )}
