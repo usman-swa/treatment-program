@@ -5,6 +5,27 @@ import { ApiCreateActivityPost201Response } from "../api";
 import { TreatmentProgram } from "../types";
 import { useEffect } from "react";
 
+/**
+ * Custom hook to process and manage calendar data for a treatment program.
+ *
+ * @param {ApiCreateActivityPost201Response} programData - The data of the treatment program containing activities.
+ * @param {Date} today - The current date to compare activities against.
+ * @param {any} dispatch - The dispatch function to update the global state with processed activities.
+ *
+ * @returns {void}
+ *
+ * @remarks
+ * This hook processes the treatment program data to categorize activities into overdue, future, and current activities.
+ * It then dispatches the processed activities to update the global state.
+ *
+ * @example
+ * ```typescript
+ * const programData = fetchProgramData();
+ * const today = new Date();
+ * const dispatch = useDispatch();
+ * useCalendarData(programData, today, dispatch);
+ * ```
+ */
 const useCalendarData = (programData: ApiCreateActivityPost201Response, today: Date, dispatch: any) => {
   useEffect(() => {
     if (!programData) {

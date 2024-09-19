@@ -43,6 +43,29 @@ const HeaderWrapper = styled.div`
   padding: 0 20px;
 `;
 
+/**
+ * Calendar component that displays a calendar view with activities.
+ * 
+ * @component
+ * @param {Object} props - Component props
+ * @param {ApiCreateActivityPost201Response} props.programData - Data for the program activities
+ * 
+ * @returns {JSX.Element} The rendered Calendar component
+ * 
+ * @throws {Error} If `useCalendar` is not used within a `CalendarProvider`
+ * 
+ * @example
+ * <Calendar programData={programData} />
+ * 
+ * @remarks
+ * This component uses the `useCalendar` hook to access the calendar context,
+ * and the `useTranslation` hook for internationalization. It also uses the
+ * `useCalendarData` hook to fetch and dispatch calendar data.
+ * 
+ * The calendar displays days of the current month and highlights the current day.
+ * Activities for each day are fetched from the global state and displayed within
+ * the corresponding day cell. An "Add Activity" button opens a modal to add new activities.
+ */
 const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
   programData,
 }) => {

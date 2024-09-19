@@ -6,6 +6,28 @@ import { DefaultApi } from "../api";
 import { addDays } from "date-fns";
 import { modalStyle } from "../styles/modalStyle";
 
+/**
+ * AddActivityModal component allows users to add a new activity.
+ * 
+ * @component
+ * @param {Object} props - The properties object.
+ * @param {boolean} props.isOpen - Determines if the modal is open.
+ * @param {() => void} props.onClose - Function to close the modal.
+ * @param {any} props.dispatch - Dispatch function to update global state.
+ * 
+ * @returns {JSX.Element} The rendered AddActivityModal component.
+ * 
+ * @example
+ * <AddActivityModal isOpen={isOpen} onClose={handleClose} dispatch={dispatch} />
+ * 
+ * @remarks
+ * This component uses Material-UI components for the modal and form elements.
+ * It handles form state and submission, including validation and API interaction.
+ * 
+ * @internal
+ * The component maintains local state for the new activity, loading status, error messages, and success messages.
+ * It dispatches an action to add the new activity to the global state upon successful submission.
+ */
 const AddActivityModal: React.FC<{ isOpen: boolean; onClose: () => void; dispatch: any }> = ({
   isOpen,
   onClose,

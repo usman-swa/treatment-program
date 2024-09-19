@@ -17,6 +17,27 @@ const FlagIcon = styled("img")({
   marginRight: "8px",
 });
 
+/**
+ * LanguageSwitcher component allows users to switch the application's language.
+ * It uses the `useTranslation` hook from `react-i18next` to change the language.
+ * 
+ * @component
+ * 
+ * @example
+ * return (
+ *   <LanguageSwitcher />
+ * )
+ * 
+ * @returns {JSX.Element} The rendered component.
+ * 
+ * @remarks
+ * This component uses Material-UI's `Button` and `Menu` components to display a dropdown menu
+ * for language selection. It also uses custom `FlagIcon` components to display flags next to
+ * the language options.
+ * 
+ * @function
+ * @name LanguageSwitcher
+ */
 const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
