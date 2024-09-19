@@ -1,20 +1,16 @@
-import { ADD_ACTIVITY, useCalendar } from "../context/CalendarContext";
-import { Box, Button, CircularProgress, Modal as MuiModal, TextField } from "@mui/material";
+import { Box, Button, CircularProgress, MenuItem, Modal as MuiModal, TextField } from "@mui/material";
 import React, { useState } from "react";
 
-import { DefaultApi } from "../api"
-import { modalStyle } from "../styles/calendarStyles";
+import { ADD_ACTIVITY } from "../context/CalendarContext";
+import { DefaultApi } from "../api";
+import { addDays } from "date-fns";
+import { modalStyle } from "../styles/modalStyle";
 
-const AddActivityModal: React.FC<{
-  isModalOpen: boolean;
-  closeModal: () => void;
-}> = ({ isModalOpen, closeModal }) => {
-  const calendarContext = useCalendar();
-  if (!calendarContext) {
-    throw new Error("useCalendar must be used within a CalendarProvider");
-  }
-  const { dispatch } = calendarContext;
-
+const AddActivityModal: React.FC<{ isOpen: boolean; onClose: () => void; dispatch: any }> = ({
+  isOpen,
+  onClose,
+  dispatch,
+}) => {
   const [newActivity, setNewActivity] = useState({
     week: "",
     weekday: "",
@@ -31,6 +27,7 @@ const AddActivityModal: React.FC<{
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
     if (!newActivity.week || !newActivity.weekday || !newActivity.title) {
       setError("Please fill out all fields.");
       return;
@@ -38,6 +35,7 @@ const AddActivityModal: React.FC<{
 
     try {
       setLoading(true);
+
       const api = new DefaultApi();
       const response = await api.apiCreateActivityPost({
         week: newActivity.week,
@@ -47,15 +45,32 @@ const AddActivityModal: React.FC<{
       });
 
       if (response.status === 201) {
-        dispatch({
-          type: ADD_ACTIVITY,
-          payload: {
-            date: new Date(), // Simplified, calculate date properly
-            title: newActivity.title,
-          },
-        });
+        const baseDate = new Date(2024, 8, 2);
+        const weekNumber = parseInt(newActivity.week.replace("week", ""), 10);
+        const weekStartDate = addDays(baseDate, (weekNumber - 36) * 7);
+        const dayIndex = [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+          "sunday",
+        ].indexOf(newActivity.weekday.toLowerCase());
+        const activityDate = addDays(weekStartDate, dayIndex);
+
+        const addedActivity = {
+          date: activityDate,
+          title: newActivity.title,
+        };
+
+        // Dispatch action to add the new activity to global state
+        dispatch({ type: ADD_ACTIVITY, payload: addedActivity });
+
         setSuccessMessage("Activity added successfully.");
-        closeModal();
+        onClose();
+      } else {
+        throw new Error("Failed to add activity.");
       }
     } catch (error) {
       setError("Error adding activity. Please try again.");
@@ -65,7 +80,7 @@ const AddActivityModal: React.FC<{
   };
 
   return (
-    <MuiModal open={isModalOpen} onClose={closeModal}>
+    <MuiModal open={isOpen} onClose={onClose}>
       <Box component="form" sx={modalStyle} onSubmit={handleSubmit}>
         <h2>Add New Activity</h2>
 
@@ -77,7 +92,11 @@ const AddActivityModal: React.FC<{
           onChange={handleFormChange}
           required
         >
-          {/* Week options */}
+          <MenuItem value="week36">Week 36</MenuItem>
+          <MenuItem value="week37">Week 37</MenuItem>
+          <MenuItem value="week38">Week 38</MenuItem>
+          <MenuItem value="week39">Week 39</MenuItem>
+          {/* Add more week options here */}
         </TextField>
 
         <TextField
@@ -88,7 +107,10 @@ const AddActivityModal: React.FC<{
           onChange={handleFormChange}
           required
         >
-          {/* Weekday options */}
+          <MenuItem value="monday">Monday</MenuItem>
+          <MenuItem value="tuesday">Tuesday</MenuItem>
+          <MenuItem value="wednesday">Wednesday</MenuItem>
+          {/* Add more weekday options here */}
         </TextField>
 
         <TextField
@@ -99,9 +121,17 @@ const AddActivityModal: React.FC<{
           required
         />
 
-        {loading ? <CircularProgress /> : <Button type="submit">Add Activity</Button>}
+        {loading ? (
+          <CircularProgress />
+        ) : (
+          <Button type="submit" variant="contained" sx={{ backgroundColor: "rgb(93, 175, 116)" }}>
+            Add Activity
+          </Button>
+        )}
         {error && <div style={{ color: "red" }}>{error}</div>}
-        {successMessage && <div style={{ color: "green" }}>{successMessage}</div>}
+        {successMessage && (
+          <div style={{ color: "green" }}>{successMessage}</div>
+        )}
       </Box>
     </MuiModal>
   );
