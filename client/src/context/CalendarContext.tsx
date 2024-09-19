@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useReducer } from "react";
 
-import { ApiCreateActivityPostRequest } from "../api";
 import { ReactNode } from "react";
 
 // Define action types

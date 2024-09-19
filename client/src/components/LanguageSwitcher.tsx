@@ -1,6 +1,6 @@
 // src/LanguageSwitcher.js
 
-import { Button, IconButton, Menu, MenuItem } from "@mui/material";
+import { Button, Menu, MenuItem } from "@mui/material";
 import React, { useState } from "react";
 
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
