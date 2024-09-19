@@ -1,9 +1,5 @@
-export type Activity = {
-  weekday: string;
-  title: string;
-  completed: boolean;
-}
+import { ApiCreateActivityPost201Response } from "./api";
 
 export type TreatmentProgram = {
-  [week: string]: Activity[]; // This allows dynamic access using string keys
+  [week: string]: ApiCreateActivityPost201Response[]; // This allows dynamic access using string keys
 }
