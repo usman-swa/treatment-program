@@ -9,6 +9,14 @@ const cors = Cors({
 });
 
 // Helper function to run middleware
+/**
+ * Runs the given middleware function and returns a promise.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @param {Function} fn - The middleware function to run.
+ * @returns {Promise} - A promise that resolves with the result of the middleware function or rejects with an error.
+ */
 export function runMiddleware(req, res, fn) {
   return new Promise((resolve, reject) => {
     fn(req, res, (result) => {

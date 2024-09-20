@@ -15,6 +15,18 @@ app.prepare().then(() => {
   server.use(cors());
 
   // Swagger API documentation
+  /**
+   * @swagger
+   * openapi: 3.0.0
+   * info:
+   *   title: Treatment Program API
+   *   version: 1.0.0
+   *   description: API for managing treatment programs and activities
+   * servers:
+   *   - url: http://localhost:4000/api
+   * apis:
+   *   - ./pages/api/*.js
+   */
   const swaggerSpec = swaggerJsdoc({
     definition: {
       openapi: '3.0.0',
