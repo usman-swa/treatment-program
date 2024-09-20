@@ -41,6 +41,22 @@ const prisma = new PrismaClient();
  *       500:
  *         description: Failed to fetch data from the server.
  */
+/**
+ * API handler for treatment program.
+ *
+ * @param {import('next').NextApiRequest} req - The API request object.
+ * @param {import('next').NextApiResponse} res - The API response object.
+ * @returns {Promise<void>} - A promise that resolves when the handler is complete.
+ *
+ * @description
+ * This handler supports the following methods:
+ * - OPTIONS: Sets CORS headers and allowed methods.
+ * - GET: Fetches and organizes treatment programs from the database.
+ *
+ * The GET method organizes the treatment programs by week and returns them in a structured format.
+ * If an error occurs during data fetching, a 500 status code is returned with an error message.
+ * For unsupported methods, a 405 status code is returned.
+ */
 export default async function handler(req, res) {
   // Run CORS middleware
   await runMiddleware(req, res, cors);

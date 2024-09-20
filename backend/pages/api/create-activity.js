@@ -55,6 +55,19 @@ function runMiddleware(req, res, fn) {
  *         description: Internal server error
  */
 
+/**
+ * API handler for creating a new activity in the treatment program.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {string} req.method - The HTTP method of the request.
+ * @param {Object} req.body - The body of the request.
+ * @param {number} req.body.week - The week number of the activity.
+ * @param {number} req.body.weekday - The weekday number of the activity.
+ * @param {string} req.body.title - The title of the activity.
+ * @param {boolean} [req.body.completed] - The completion status of the activity.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} - A promise that resolves when the handler is complete.
+ */
 export default async function handler(req, res) {
   try {
     await runMiddleware(req, res, cors);
