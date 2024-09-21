@@ -1,3 +1,4 @@
+import { authenticate, authorize } from '../../middleware/auth';
 import cors, { runMiddleware } from '../../lib/cors';
 
 import { PrismaClient } from '@prisma/client';
@@ -57,7 +58,7 @@ const prisma = new PrismaClient();
  * If an error occurs during data fetching, a 500 status code is returned with an error message.
  * For unsupported methods, a 405 status code is returned.
  */
-export default async function handler(req, res) {
+async function handler(req, res) {
   // Run CORS middleware
   await runMiddleware(req, res, cors);
 
@@ -96,3 +97,6 @@ export default async function handler(req, res) {
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }
+
+// Apply authentication and authorization middleware
+export default authenticate(authorize(handler));
