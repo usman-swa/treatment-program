@@ -2,12 +2,23 @@ import {
   ApiCreateActivityPost201Response,
   ApiTreatmentProgramGet200ResponseValueInner,
   DefaultApi,
-} from "./api"; // Adjust the import path as needed
+} from "./api";
 import React, { useEffect, useState } from "react";
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
 import Calendar from "./components/Calendar";
 import { CalendarProvider } from "./context/CalendarContext";
+import Login from "./components/Login"; // Import the Login component
 import { TreatmentProgram } from "./types";
+
+// Adjust the import path as needed
+
+
+
+
+
+
+
 
 // Define an interface that matches your API response structure
 interface ApiResponse {
@@ -41,9 +52,9 @@ const App: React.FC = () => {
         }
 
         setProgramData(treatmentProgram);
+        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
-      } finally {
         setIsLoading(false);
       }
     };
@@ -51,20 +62,18 @@ const App: React.FC = () => {
     fetchData();
   }, [isLoading]);
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!programData) {
-    return <div>No Data Available</div>; // Optionally handle the case when no data is available
-  }
-
   return (
-    <div>
-      <CalendarProvider>
-        <Calendar programData={programData} />
-      </CalendarProvider>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/calendar" element={
+          <CalendarProvider>
+            <Calendar programData={programData || {}} />
+          </CalendarProvider>
+        } />
+        <Route path="/" element={<Login />} />
+      </Routes>
+    </Router>
   );
 };
 
