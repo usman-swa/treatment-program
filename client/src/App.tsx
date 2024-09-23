@@ -1,21 +1,16 @@
-import { ApiCreateActivityPost201Response, ApiTreatmentProgramGet200ResponseValueInner, DefaultApi } from './api';
+import { ApiTreatmentProgramGet200ResponseValueInner, Configuration, DefaultApi } from './api';
 import React, { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import Calendar from "./components/Calendar";
 import { CalendarProvider } from "./context/CalendarContext";
-import Login from "./components/Login"; // Import the Login component
+import Login from "./components/Login";
 import Register from "./components/Register";
-import { TreatmentProgram } from "./types";
+import { TreatmentProgram } from './types';
 import axios from 'axios';
 
-// Define an interface that matches your API response structure
-interface ApiResponse {
-  [week: string]: ApiTreatmentProgramGet200ResponseValueInner[];
-}
-
 const App: React.FC = () => {
-  const [programData, setProgramData] = useState<ApiCreateActivityPost201Response | null>(null);
+  const [programData, setProgramData] = useState<TreatmentProgram | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -32,19 +27,32 @@ const App: React.FC = () => {
 
         console.log('Token:', token); // Log the token to verify
 
-        // Create an Axios instance with the token
-        const axiosInstance = axios.create({
-          baseURL: 'http://localhost:8000',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        // Access the BASE_PATH environment variable
+        const basePath = 'http://localhost:8000'; // Use the default value if not set
 
-        // Create an instance of the generated API client with the Axios instance
-        const apiClient = new DefaultApi(undefined, '', axiosInstance);
+        if (!basePath) {
+          throw new Error("REACT_APP_BASE_PATH is not defined");
+        }
+
+        // Create an instance of the generated API client with the token
+        const config = new Configuration({
+          basePath: basePath, // Use the BASE_PATH environment variable
+        });
+        const apiClient = new DefaultApi(config);
+
+        // Add an interceptor to include the Authorization header
+        axios.interceptors.request.use(
+          (config) => {
+            config.headers.Authorization = `Bearer ${token}`;
+            return config;
+          },
+          (error) => {
+            return Promise.reject(error);
+          }
+        );
 
         // Call the API method to get the treatment program data
-        let apiData: ApiResponse = {};
+        let apiData: ApiTreatmentProgramGet200ResponseValueInner = {};
         try {
           const response = await apiClient.apiTreatmentProgramGet(); // Replace with your actual API endpoint
           console.log('Response:', response);
@@ -56,10 +64,10 @@ const App: React.FC = () => {
         // Map API response to TreatmentProgram type
         const treatmentProgram: TreatmentProgram = {};
         for (const [week, activities] of Object.entries(apiData)) {
-          treatmentProgram[week] = activities.map((activity) => ({
-            weekday: activity.weekday || "",
-            title: activity.title || "",
-            completed: activity.completed || false,
+          treatmentProgram[week] = activities.map((activity: any) => ({
+            weekday: activity.weekday ?? "",
+            title: activity.title ?? "",
+            completed: activity.completed ?? false,
           }));
         }
 
