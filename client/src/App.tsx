@@ -1,17 +1,13 @@
-import {
-  ApiCreateActivityPost201Response,
-  ApiTreatmentProgramGet200ResponseValueInner,
-  Configuration,
-  DefaultApi,
-} from "./api";
-import React, { useEffect, useState } from "react";
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { ApiCreateActivityPost201Response, ApiTreatmentProgramGet200ResponseValueInner, DefaultApi } from './api';
+import React, { useEffect, useState } from 'react';
+import { Route, Routes } from 'react-router-dom';
 
 import Calendar from "./components/Calendar";
 import { CalendarProvider } from "./context/CalendarContext";
 import Login from "./components/Login"; // Import the Login component
 import Register from "./components/Register";
 import { TreatmentProgram } from "./types";
+import axios from 'axios';
 
 // Define an interface that matches your API response structure
 interface ApiResponse {
@@ -19,8 +15,7 @@ interface ApiResponse {
 }
 
 const App: React.FC = () => {
-  const [programData, setProgramData] =
-    useState<ApiCreateActivityPost201Response | null>(null);
+  const [programData, setProgramData] = useState<ApiCreateActivityPost201Response | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -35,14 +30,20 @@ const App: React.FC = () => {
           throw new Error("No token found");
         }
 
-        // Create an instance of the generated API client with the token
-        const apiClient = new DefaultApi(new Configuration({
-          basePath: 'http://localhost:8000',
-          accessToken: `Bearer ${token}`,
-        }));
+        console.log('Token:', token); // Log the token to verify
+
+        // Create an Axios instance with the token
+        const axiosInstance = axios.create({
+          baseURL: 'http://localhost:8000',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        // Create an instance of the generated API client with the Axios instance
+        const apiClient = new DefaultApi(undefined, '', axiosInstance);
 
         // Call the API method to get the treatment program data
-        //const response = await apiClient.apiTreatmentProgramGet();
         let apiData: ApiResponse = {};
         try {
           const response = await apiClient.apiTreatmentProgramGet(); // Replace with your actual API endpoint
@@ -65,8 +66,7 @@ const App: React.FC = () => {
         setProgramData(treatmentProgram);
         setIsLoading(false);
       } catch (error) {
-        console.error("Error fetching data:", error);
-        setIsLoading(false);
+        console.error('Error fetching data:', error);
       }
     };
 
@@ -74,18 +74,15 @@ const App: React.FC = () => {
   }, [isLoading]);
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/calendar" element={
-          <CalendarProvider>
-            <Calendar programData={programData || {}} />
-          </CalendarProvider>
-        } />
-        <Route path="/" element={<Login />} />
-      </Routes>
-    </Router>
+    <CalendarProvider>
+      <div className="App">
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/calendar" element={programData ? <Calendar programData={programData} /> : <div>Loading...</div>} />
+        </Routes>
+      </div>
+    </CalendarProvider>
   );
 };
 
