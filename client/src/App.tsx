@@ -1,6 +1,7 @@
 import {
   ApiCreateActivityPost201Response,
   ApiTreatmentProgramGet200ResponseValueInner,
+  Configuration,
   DefaultApi,
 } from "./api";
 import React, { useEffect, useState } from "react";
@@ -9,16 +10,8 @@ import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Calendar from "./components/Calendar";
 import { CalendarProvider } from "./context/CalendarContext";
 import Login from "./components/Login"; // Import the Login component
+import Register from "./components/Register";
 import { TreatmentProgram } from "./types";
-
-// Adjust the import path as needed
-
-
-
-
-
-
-
 
 // Define an interface that matches your API response structure
 interface ApiResponse {
@@ -35,11 +28,29 @@ const App: React.FC = () => {
 
     const fetchData = async () => {
       try {
-        // Create an instance of the generated API client
-        const apiClient = new DefaultApi();
+        // Retrieve the token from localStorage
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+          throw new Error("No token found");
+        }
+
+        // Create an instance of the generated API client with the token
+        const apiClient = new DefaultApi(new Configuration({
+          basePath: 'http://localhost:8000',
+          accessToken: `Bearer ${token}`,
+        }));
+
         // Call the API method to get the treatment program data
-        const response = await apiClient.apiTreatmentProgramGet();
-        const apiData: ApiResponse = response.data;
+        //const response = await apiClient.apiTreatmentProgramGet();
+        let apiData: ApiResponse = {};
+        try {
+          const response = await apiClient.apiTreatmentProgramGet(); // Replace with your actual API endpoint
+          console.log('Response:', response);
+          apiData = response.data;
+        } catch (error) {
+          console.error('Error:', error);
+        }
 
         // Map API response to TreatmentProgram type
         const treatmentProgram: TreatmentProgram = {};
@@ -66,6 +77,7 @@ const App: React.FC = () => {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/calendar" element={
           <CalendarProvider>
             <Calendar programData={programData || {}} />

@@ -10,7 +10,13 @@ console.log('JWT_SECRET:', process.env.JWT_SECRET);
 const authenticate = expressjwt({
   secret: process.env.JWT_SECRET,
   algorithms: ['HS256'],
-  requestProperty: 'auth',
+  getToken: (req) => {
+    console.log('Authorization Header:', req.headers.authorization); // Log the authorization header
+    if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
+      return req.headers.authorization.split(' ')[1];
+    }
+    return null;
+  },
 });
 
 const authorize = (req, res, next) => {

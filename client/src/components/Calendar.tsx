@@ -1,58 +1,19 @@
-import { ActivityContainer, ActivityTitle, CalendarBody, DayContainer, DayNumber } from "../components/CalendarBody";
-import { CalendarHeader, DayName, Header } from "../components/CalendarHeader";
-import React, { useMemo, useState } from "react";
-import { format, isSameDay, isToday } from "date-fns";
+import { ActivityContainer, ActivityTitle, CalendarBody, DayContainer, DayNumber } from './CalendarBody';
+import { AddActivityButton, CalendarContainer, HeaderWrapper } from './StyledComponents';
+import { CalendarHeader, DayName, Header } from './CalendarHeader';
+import React, { useMemo, useState } from 'react';
+import { format, isSameDay, isToday } from 'date-fns';
 
-import AddActivityModal from "../components/AddActivityModal";
-import { ApiCreateActivityPost201Response } from "../api";
-import LanguageSwitcher from "./LanguageSwitcher";
-import { getCalendarDays } from "../utils/dateUtils";
-import styled from "styled-components";
-import { useCalendar } from "../context/CalendarContext";
-import useCalendarData from "../hooks/useCalendarData";
-import { useTranslation } from "react-i18next";
-
-const AddActivityButton = styled.button`
-  background-color: rgb(93, 175, 116);
-  border: none;
-  border-radius: 24px;
-  color: white;
-  font-size: 16px;
-  padding: 10px 20px;
-  cursor: pointer;
-`;
-
-const CalendarContainer = styled.div`
-  background-color: white;
-  border: 4px solid rgb(93, 175, 116);
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  margin: 24px auto 0;
-  max-width: 1200px;
-  padding: 0;
-  width: 100%;
-`;
-
-const HeaderWrapper = styled.div`
-  background-color: white;
-  border-bottom: 1px solid rgb(93, 175, 116);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0 20px;
-`;
+import AddActivityModal from './AddActivityModal';
+import { ApiCreateActivityPost201Response } from '../api';
+import LanguageSwitcher from './LanguageSwitcher';
+import { getCalendarDays } from '../utils/dateUtils';
+import { useCalendar } from '../context/CalendarContext';
+import useCalendarData from '../hooks/useCalendarData';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
+import { useTranslation } from 'react-i18next';
 
 /**
- * Calendar component that displays a calendar view with activities.
- * 
- * @component
- * @param {Object} props - Component props
- * @param {ApiCreateActivityPost201Response} props.programData - Data for the program activities
- * 
- * @returns {JSX.Element} The rendered Calendar component
- * 
- * @throws {Error} If `useCalendar` is not used within a `CalendarProvider`
  * 
  * @example
  * <Calendar programData={programData} />
@@ -87,8 +48,17 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
 
   useCalendarData(programData, today, dispatch);
 
+  const navigate = useNavigate(); // Initialize useNavigate
+
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
+
+  const handleLogout = () => {
+    // Clear user credentials (e.g., remove from localStorage)
+    localStorage.removeItem('userToken');
+    // Redirect to login page
+    navigate('/login');
+  };
 
   return (
     <>
@@ -99,6 +69,7 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
           <AddActivityButton onClick={openModal}>
             Add Activity
           </AddActivityButton>
+          <button onClick={handleLogout}>Logout</button> {/* Add Logout button */}
         </HeaderWrapper>
 
         <CalendarHeader>
@@ -141,9 +112,9 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
             );
           })}
         </CalendarBody>
-      </CalendarContainer>
 
-      <AddActivityModal isOpen={isModalOpen} onClose={closeModal} dispatch={dispatch} />
+        <AddActivityModal isOpen={isModalOpen} onClose={closeModal} dispatch={dispatch} />
+      </CalendarContainer>
     </>
   );
 };

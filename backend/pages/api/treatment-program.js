@@ -1,54 +1,27 @@
 import { authenticate, authorize } from '../../middleware/auth';
-import cors, { runMiddleware } from '../../lib/cors';
 
 import { PrismaClient } from '@prisma/client';
+import cors from 'cors';
+import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
 
+// Function to validate the token
+const validateToken = (req) => {
+  const token = req.headers['authorization']?.split(' ')[1];
+  if (!token) {
+    throw new Error('No token provided');
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    return decoded;
+  } catch (error) {
+    throw new Error('Invalid token');
+  }
+};
+
 /**
- * @swagger
- * /treatment-program:
- *   get:
- *     summary: Retrieve treatment programs
- *     description: Fetch a list of treatment programs organized by week and weekday.
- *     responses:
- *       200:
- *         description: A JSON object containing the treatment programs organized by week.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               example: {
- *                 "1": [
- *                   {
- *                     "weekday": "Monday",
- *                     "title": "Program Title 1",
- *                     "completed": false
- *                   },
- *                   {
- *                     "weekday": "Tuesday",
- *                     "title": "Program Title 2",
- *                     "completed": true
- *                   }
- *                 ],
- *                 "2": [
- *                   {
- *                     "weekday": "Monday",
- *                     "title": "Program Title 3",
- *                     "completed": false
- *                   }
- *                 ]
- *               }
- *       500:
- *         description: Failed to fetch data from the server.
- */
-/**
- * API handler for treatment program.
- *
- * @param {import('next').NextApiRequest} req - The API request object.
- * @param {import('next').NextApiResponse} res - The API response object.
- * @returns {Promise<void>} - A promise that resolves when the handler is complete.
- *
  * @description
  * This handler supports the following methods:
  * - OPTIONS: Sets CORS headers and allowed methods.
@@ -65,8 +38,16 @@ async function handler(req, res) {
   // Handle OPTIONS method
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization');
     res.status(200).end();
+    return;
+  }
+
+  // Validate token
+  try {
+    validateToken(req);
+  } catch (error) {
+    res.status(401).json({ error: error.message });
     return;
   }
 
