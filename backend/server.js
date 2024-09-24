@@ -1,14 +1,13 @@
 import { authenticate, authorize } from './middleware/auth.js'; // Adjust the import path as necessary
 
-import { PrismaClient } from '@prisma/client';
 import cors from 'cors';
 import createActivityHandler from './pages/api/create-activity.js'; // Adjust the path as necessary
 import express from 'express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
+import treatmentProgramHandler from './pages/api/treatment-program.js'; // Adjust the path as necessary
 
 const app = express();
-const prisma = new PrismaClient();
 
 app.use(cors({
   origin: true, // Allow requests from any origin
@@ -61,33 +60,14 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.post('/api/auth/register', (req, res) => import('./pages/api/auth.js').then(module => module.register(req, res)));
 app.post('/api/auth/login', (req, res) => import('./pages/api/auth.js').then(module => module.login(req, res)));
 
+
+// Authentication routes
+// (Your existing authentication routes here)
 // Apply the authenticate middleware to all routes that require authentication
 app.use('/api/treatment-program', authenticate, authorize);
 
 // Example route with token validation
-app.get('/api/treatment-program', async (req, res) => {
-  console.log(req.headers); // Log all headers
-  try {
-    const programs = await prisma.treatmentProgram.findMany({
-      orderBy: { week: 'asc' }
-    });
-    const organizedData = programs.reduce((acc, program) => {
-      if (!acc[program.week]) {
-        acc[program.week] = [];
-      }
-      acc[program.week].push({
-        weekday: program.weekday,
-        title: program.title,
-        completed: program.completed
-      });
-      return acc;
-    }, {});
-
-    res.status(200).json(organizedData);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch data' });
-  }
-});
+app.get('/api/treatment-program', treatmentProgramHandler);
 
 // Create activity route
 app.post('/api/create-activity', createActivityHandler);
