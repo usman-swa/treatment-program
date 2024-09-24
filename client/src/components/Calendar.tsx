@@ -1,7 +1,7 @@
 import { ActivityContainer, ActivityTitle, CalendarBody, DayContainer, DayNumber } from './CalendarBody';
 import { AddActivityButton, CalendarContainer, HeaderWrapper } from './StyledComponents';
 import { CalendarHeader, DayName, Header } from './CalendarHeader';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { format, isSameDay, isToday } from 'date-fns';
 
 import AddActivityModal from './AddActivityModal';
@@ -32,6 +32,7 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
 }) => {
   const { t } = useTranslation();
   const today = useMemo(() => new Date(), []);
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const calendarContext = useCalendar(); // Access context
   if (!calendarContext) {
@@ -39,6 +40,7 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
   }
   const { state, dispatch } = calendarContext; // Destructure state and dispatch from context
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
 
   const currentMonth = today;
   const filledDays = getCalendarDays(currentMonth);
@@ -48,17 +50,31 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
 
   useCalendarData(programData, today, dispatch);
 
-  const navigate = useNavigate(); // Initialize useNavigate
-
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
   const handleLogout = () => {
-    // Clear user credentials (e.g., remove from localStorage)
-    localStorage.removeItem('userToken');
-    // Redirect to login page
+    // Clear the token from localStorage
+    localStorage.removeItem('token');
+
+    // Redirect to the login page or perform any other necessary actions
     navigate('/login');
   };
+
+  useEffect(() => {
+    // Check if the token is present in localStorage
+    const token = localStorage.getItem('token');
+    if (!token) {
+      // Redirect to the login page if not logged in
+      navigate('/login');
+    } else {
+      setIsLoading(false); // Set loading to false if token is found
+    }
+  }, [navigate]);
+
+  if (isLoading) {
+    return <div>Loading...</div>; // Show loading state while checking for token
+  }
 
   return (
     <>
