@@ -2,6 +2,7 @@ import { authenticate, authorize } from './middleware/auth.js'; // Adjust the im
 
 import { PrismaClient } from '@prisma/client';
 import cors from 'cors';
+import createActivityHandler from './pages/api/create-activity.js'; // Adjust the path as necessary
 import express from 'express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
@@ -87,6 +88,9 @@ app.get('/api/treatment-program', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch data' });
   }
 });
+
+// Create activity route
+app.post('/api/create-activity', createActivityHandler);
 
 // Start the server
 const PORT = process.env.PORT || 4000;

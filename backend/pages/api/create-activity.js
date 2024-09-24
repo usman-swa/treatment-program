@@ -1,11 +1,9 @@
-// pages/api/create-activity.js
-
 import Cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const cors = Cors({
-  methods: ['GET', 'POST', 'HEAD', 'PUT', 'DELETE'],
+  methods: ['POST'],
   origin: '*', // Allow any origin
 });
 
@@ -22,13 +20,14 @@ function runMiddleware(req, res, fn) {
 }
 
 /**
- * @openapi
+ * @swagger
  * /api/create-activity:
  *   post:
  *     summary: Create a new activity
  *     description: Adds a new activity to the treatment program.
  *     requestBody:
  *       description: The activity to be created
+ *       required: true
  *       content:
  *         application/json:
  *           schema:
@@ -47,70 +46,77 @@ function runMiddleware(req, res, fn) {
  *               - weekday
  *               - title
  *     responses:
- *       '201':
+ *       201:
  *         description: Successfully created activity
- *       '400':
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 week:
+ *                   type: string
+ *                 weekday:
+ *                   type: string
+ *                 title:
+ *                   type: string
+ *                 completed:
+ *                   type: boolean
+ *       400:
  *         description: Bad request
- *       '500':
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
  *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
  */
 
-/**
- * API handler for creating a new activity in the treatment program.
- *
- * @param {Object} req - The HTTP request object.
- * @param {string} req.method - The HTTP method of the request.
- * @param {Object} req.body - The body of the request.
- * @param {number} req.body.week - The week number of the activity.
- * @param {number} req.body.weekday - The weekday number of the activity.
- * @param {string} req.body.title - The title of the activity.
- * @param {boolean} [req.body.completed] - The completion status of the activity.
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} - A promise that resolves when the handler is complete.
- */
 export default async function handler(req, res) {
-  try {
-    await runMiddleware(req, res, cors);
-    console.log('CORS middleware executed'); // Debugging line
+  // Run the CORS middleware
+  await runMiddleware(req, res, cors);
 
-    if (req.method === 'OPTIONS') {
-      res.setHeader('Access-Control-Allow-Methods', 'POST');
-      res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type');
-      res.setHeader('Access-Control-Allow-Origin', '*'); // Allow any origin
-      res.status(200).end();
-      return;
+  if (req.method === 'POST') {
+    const { week, weekday, title, completed } = req.body;
+
+    // Validate the request body
+    if (!week || !weekday || !title) {
+      console.error('Validation error: Missing required fields');
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    if (req.method === 'POST') {
-      const { week, weekday, title, completed } = req.body;
+    try {
+      // Create a new activity in the database
+      const newActivity = await prisma.treatmentProgram.create({
+        data: {
+          week,
+          weekday,
+          title,
+          completed: completed || false,
+        },
+      });
 
-      if (!week || !weekday || !title) {
-        return res.status(400).json({ error: 'Week, weekday, and title are required' });
-      }
-
-      try {
-        const newActivity = await prisma.treatmentProgram.create({
-          data: {
-            week,
-            weekday,
-            title,
-            completed: completed || false,
-          },
-        });
-
-        res.setHeader('Access-Control-Allow-Origin', '*'); // Allow any origin
-        res.status(201).json(newActivity);
-      } catch (error) {
-        console.error('Error creating activity:', error); // Debugging line
-        res.setHeader('Access-Control-Allow-Origin', '*'); // Allow any origin
-        res.status(500).json({ error: 'Failed to create activity' });
-      }
-    } else {
-      res.setHeader('Allow', ['POST']);
-      res.status(405).end(`Method ${req.method} Not Allowed`);
+      // Respond with the created activity
+      console.log('Activity created:', newActivity);
+      return res.status(201).json(newActivity);
+    } catch (error) {
+      console.error('Error creating activity:', error);
+      return res.status(500).json({ error: 'Internal server error' });
     }
-  } catch (error) {
-    console.error('Error in handler:', error); // Debugging line
-    res.status(500).json({ error: 'Internal server error' });
+  } else {
+    // Method not allowed
+    res.setHeader('Allow', ['POST']);
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 }
