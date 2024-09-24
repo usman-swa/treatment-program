@@ -8,13 +8,14 @@ import swaggerUi from 'swagger-ui-express';
 import treatmentProgramHandler from './pages/api/treatment-program.js'; // Adjust the path as necessary
 
 const app = express();
+const PORT = process.env.PORT || 4000;
 
+// Middleware Configuration
 app.use(cors({
   origin: true, // Allow requests from any origin
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-
 app.use(express.json());
 
 // Log incoming requests
@@ -23,19 +24,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Swagger API documentation
-/**
- * @swagger
- * openapi: 3.0.0
- * info:
- *   title: Treatment Program API
- *   version: 1.0.0
- *   description: API for managing treatment programs and activities
- * servers:
- *   - url: http://localhost:4000/api
- * apis:
- *   - ./pages/api/*.js
- */
+// Swagger API Documentation
 const swaggerSpec = swaggerJsdoc({
   definition: {
     openapi: '3.0.0',
@@ -53,27 +42,21 @@ const swaggerSpec = swaggerJsdoc({
   apis: ['./pages/api/*.js'],  // Adjust if necessary
 });
 
-// Swagger UI route
+// Swagger UI Route
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Authentication routes
+// Authentication Routes
 app.post('/api/auth/register', (req, res) => import('./pages/api/auth.js').then(module => module.register(req, res)));
 app.post('/api/auth/login', (req, res) => import('./pages/api/auth.js').then(module => module.login(req, res)));
 
-
-// Authentication routes
-// (Your existing authentication routes here)
 // Apply the authenticate middleware to all routes that require authentication
 app.use('/api/treatment-program', authenticate, authorize);
 
-// Example route with token validation
+// API Routes
 app.get('/api/treatment-program', treatmentProgramHandler);
-
-// Create activity route
 app.post('/api/create-activity', createActivityHandler);
 
-// Start the server
-const PORT = process.env.PORT || 4000;
+// Start the Server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
