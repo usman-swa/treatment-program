@@ -1,3 +1,5 @@
+import './styles/global.css';
+
 import App from './App';
 import { I18nextProvider } from 'react-i18next';
 import React from 'react';

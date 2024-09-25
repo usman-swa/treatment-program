@@ -5,7 +5,10 @@ export const AddActivityButton = styled.button`
   border: none;
   border-radius: 24px;
   color: white;
+  display: flex
   font-size: 16px;
+  justify-content: flex-end;
+  height: 48px;
   padding: 10px 20px;
   cursor: pointer;
 `;

@@ -1,13 +1,13 @@
 import { ActivityContainer, ActivityTitle, CalendarBody, DayContainer, DayNumber } from './CalendarBody';
 import { AddActivityButton, CalendarContainer, HeaderWrapper } from './StyledComponents';
-import { CalendarHeader, DayName, Header } from './CalendarHeader';
+import { CalendarHeader, DayName } from './CalendarHeader';
 import React, { useEffect, useMemo, useState } from 'react';
 import { format, isSameDay, isToday } from 'date-fns';
 
 import AddActivityModal from './AddActivityModal';
 import { ApiCreateActivityPost201Response } from '../api';
-import LanguageSwitcher from './LanguageSwitcher';
-import ProfileDropdown from './ProfileDropdown'; // Import ProfileDropdown
+import { Box } from '@mui/material';
+import MainLayout from './MainLayout';
 import { getCalendarDays } from '../utils/dateUtils';
 import { useCalendar } from '../context/CalendarContext';
 import useCalendarData from '../hooks/useCalendarData';
@@ -71,14 +71,15 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
 
   return (
     <>
+    <MainLayout>
       <CalendarContainer>
         <HeaderWrapper>
-          <LanguageSwitcher />
-          <Header>{t("CalendarTitle")}</Header>
-          <AddActivityButton onClick={openModal}>
-            Add Activity
-          </AddActivityButton>
-          <ProfileDropdown /> {/* Replace Logout button with ProfileDropdown */}
+          
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', height: '64px', alignItems: 'center'}}>
+            <AddActivityButton onClick={openModal}>
+              Add Activity
+            </AddActivityButton>
+          </Box>
         </HeaderWrapper>
 
         <CalendarHeader>
@@ -124,6 +125,7 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
 
         <AddActivityModal isOpen={isModalOpen} onClose={closeModal} dispatch={dispatch} />
       </CalendarContainer>
+    </MainLayout>
     </>
   );
 };

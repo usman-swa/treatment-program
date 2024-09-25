@@ -2,6 +2,7 @@ import { ApiProfilePost200Response, Configuration, DefaultApi } from '../api';
 import { Avatar, Box, Card, CardContent, CircularProgress, Container, Grid, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 
+import AppHeader from './AppHeader';
 import { useLocation } from 'react-router-dom';
 
 const Profile: React.FC = () => {
@@ -59,27 +60,30 @@ const Profile: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
-        <Card sx={{ width: '100%' }}>
-          <CardContent>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item>
-                <Avatar sx={{ width: 56, height: 56 }}>
-                  {profileData?.name?.charAt(0).toUpperCase()}
-                </Avatar>
+    <>
+      <AppHeader />
+      <Container maxWidth="sm">
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
+          <Card sx={{ width: '100%' }}>
+            <CardContent>
+              <Grid container spacing={2} alignItems="center">
+                <Grid item>
+                  <Avatar sx={{ width: 56, height: 56 }}>
+                    {profileData?.name?.charAt(0).toUpperCase()}
+                  </Avatar>
+                </Grid>
+                <Grid item>
+                  <Typography variant="h5">{profileData?.name}</Typography>
+                  <Typography variant="body1" color="textSecondary">
+                    {profileData?.email}
+                  </Typography>
+                </Grid>
               </Grid>
-              <Grid item>
-                <Typography variant="h5">{profileData?.name}</Typography>
-                <Typography variant="body1" color="textSecondary">
-                  {profileData?.email}
-                </Typography>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      </Box>
-    </Container>
+            </CardContent>
+          </Card>
+        </Box>
+      </Container>
+    </>
   );
 };
 
