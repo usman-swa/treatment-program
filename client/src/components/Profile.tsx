@@ -1,9 +1,7 @@
-import { Box, CircularProgress, Container, Typography } from '@mui/material';
+import { ApiProfilePost200Response, Configuration, DefaultApi } from '../api';
+import { Avatar, Box, Card, CardContent, CircularProgress, Container, Grid, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 
-import { ApiProfilePost200Response } from '../api'; // Add this import
-import { Configuration } from '../api/configuration';
-import { DefaultApi } from '../api';
 import { useLocation } from 'react-router-dom';
 
 const Profile: React.FC = () => {
@@ -22,7 +20,8 @@ const Profile: React.FC = () => {
           basePath: 'http://localhost:8000', // Set the base path for the API client
         });
         const apiClient = new DefaultApi(config);
-        const response = await apiClient.apiProfilePost({ email: email ?? '' }); // Use the API client to make the request
+        const requestBody = { email: email || '' }; // Ensure email is not null
+        const response = await apiClient.apiProfilePost(requestBody); // Use the API client to make the request
         setProfileData(response.data);
         setLoading(false);
       } catch (error) {
@@ -60,16 +59,27 @@ const Profile: React.FC = () => {
   }
 
   return (
-    <div>
-      <h1>Profile Page</h1>
-      <p>Email: {email}</p> {/* Display the email */}
-      {profileData && (
-        <div>
-          <h2>Profile Data</h2>
-          <pre>{JSON.stringify(profileData, null, 2)}</pre>
-        </div>
-      )}
-    </div>
+    <Container maxWidth="sm">
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
+        <Card sx={{ width: '100%' }}>
+          <CardContent>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item>
+                <Avatar sx={{ width: 56, height: 56 }}>
+                  {profileData?.name?.charAt(0).toUpperCase()}
+                </Avatar>
+              </Grid>
+              <Grid item>
+                <Typography variant="h5">{profileData?.name}</Typography>
+                <Typography variant="body1" color="textSecondary">
+                  {profileData?.email}
+                </Typography>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      </Box>
+    </Container>
   );
 };
 
