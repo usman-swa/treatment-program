@@ -44,7 +44,7 @@ function runMiddleware(req, res, fn) {
  *               properties:
  *                 id:
  *                   type: integer
- *                 username:
+ *                 name:
  *                   type: string
  *                 email:
  *                   type: string
