@@ -6,12 +6,11 @@ info:
 paths:
   /api/treatment-program:
     get:
-      summary: Retrieve the treatment program data
-      security:
-        - bearerAuth: []  # Apply the security scheme
+      summary: Get treatment programs
+      description: Fetches and organizes treatment programs from the database.
       responses:
         '200':
-          description: A list of treatment programs
+          description: Successfully fetched treatment programs
           content:
             application/json:
               schema:
@@ -27,30 +26,22 @@ paths:
                         type: string
                       completed:
                         type: boolean
-        '401':
-          description: Unauthorized
-    options:
-      summary: CORS preflight request
-      responses:
-        '200':
-          description: CORS preflight response
-          headers:
-            Access-Control-Allow-Methods:
+        '500':
+          description: Internal server error
+          content:
+            application/json:
               schema:
-                type: string
-            Access-Control-Allow-Headers:
-              schema:
-                type: string
-            Access-Control-Allow-Origin:
-              schema:
-                type: string
+                type: object
+                properties:
+                  error:
+                    type: string
 
   /api/create-activity:
     post:
       summary: Create a new activity
-      security:
-        - bearerAuth: []  # Apply the security scheme
+      description: Adds a new activity to the treatment program.
       requestBody:
+        description: The activity to be created
         required: true
         content:
           application/json:
@@ -65,15 +56,89 @@ paths:
                   type: string
                 completed:
                   type: boolean
+              required:
+                - week
+                - weekday
+                - title
       responses:
         '201':
-          description: Activity created
-        '401':
-          description: Unauthorized
+          description: Successfully created activity
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  week:
+                    type: string
+                  weekday:
+                    type: string
+                  title:
+                    type: string
+                  completed:
+                    type: boolean
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT      npm install @openapitools/openapi-generator-cli -g
+  /api/profile:
+    post:
+      summary: Get user profile
+      description: Fetches user profile data from the database.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+      responses:
+        '200':
+          description: Successfully fetched user profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  username:
+                    type: string
+                  email:
+                    type: string
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string

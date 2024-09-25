@@ -1,11 +1,13 @@
 import { Box, CircularProgress, Container, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 
-import axios from 'axios';
+import { ApiProfilePost200Response } from '../api'; // Add this import
+import { Configuration } from '../api/configuration';
+import { DefaultApi } from '../api';
 import { useLocation } from 'react-router-dom';
 
 const Profile: React.FC = () => {
-  const [profileData, setProfileData] = useState(null);
+  const [profileData, setProfileData] = useState<ApiProfilePost200Response | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -16,7 +18,11 @@ const Profile: React.FC = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.post('http://localhost:8000/api/profile', { email });
+        const config = new Configuration({
+          basePath: 'http://localhost:8000', // Set the base path for the API client
+        });
+        const apiClient = new DefaultApi(config);
+        const response = await apiClient.apiProfilePost({ email: email ?? '' }); // Use the API client to make the request
         setProfileData(response.data);
         setLoading(false);
       } catch (error) {
