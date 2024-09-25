@@ -3,12 +3,13 @@ import { authenticate, authorize } from './middleware/auth.js'; // Adjust the im
 import cors from 'cors';
 import createActivityHandler from './pages/api/create-activity.js'; // Adjust the path as necessary
 import express from 'express';
+import profileHandler from './pages/api/profile.js'; // Import the profile handler
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
-import treatmentProgramHandler from './pages/api/treatment-program.js'; // Adjust the path as necessary
+import treatmentProgramHandler from './pages/api/treatment-program.js';
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 8000;
 
 // Middleware Configuration
 app.use(cors({
@@ -35,7 +36,7 @@ const swaggerSpec = swaggerJsdoc({
     },
     servers: [
       {
-        url: 'http://localhost:4000/api',
+        url: 'http://localhost:8000/api',
       },
     ],
   },
@@ -55,6 +56,7 @@ app.use('/api/treatment-program', authenticate, authorize);
 // API Routes
 app.get('/api/treatment-program', treatmentProgramHandler);
 app.post('/api/create-activity', createActivityHandler);
+app.post('/api/profile', profileHandler); // Add the profile route
 
 // Start the Server
 app.listen(PORT, () => {

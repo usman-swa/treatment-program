@@ -12,7 +12,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState("");
+  const [email, setEmailInput] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -34,7 +34,7 @@ const Login: React.FC = () => {
 
       const data = await response.json();
       localStorage.setItem("token", data.token);
-      navigate("/calendar");
+      navigate(`/calendar?email=${encodeURIComponent(email)}`); // Navigate with email as a query parameter
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -54,31 +54,35 @@ const Login: React.FC = () => {
           mt: 8,
         }}
       >
-        <Typography variant="h4" gutterBottom>
+        <Typography component="h1" variant="h5">
           Login
         </Typography>
-        {error && <Alert severity="error">{error}</Alert>}
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
           <TextField
-            fullWidth
-            label="Email"
-            type="email"
-            variant="outlined"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             margin="normal"
             required
+            fullWidth
+            id="email"
+            label="Email Address"
+            name="email"
+            autoComplete="email"
+            autoFocus
+            value={email}
+            onChange={(e) => setEmailInput(e.target.value)}
           />
           <TextField
+            margin="normal"
+            required
             fullWidth
+            name="password"
             label="Password"
             type="password"
-            variant="outlined"
+            id="password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            margin="normal"
-            required
           />
+          {error && <Alert severity="error">{error}</Alert>}
           <Button
             type="submit"
             fullWidth

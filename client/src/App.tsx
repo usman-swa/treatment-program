@@ -1,14 +1,11 @@
-import {
-  ApiTreatmentProgramGet200ResponseValueInner,
-  Configuration,
-  DefaultApi,
-} from "./api";
+import { ApiTreatmentProgramGet200ResponseValueInner, Configuration, DefaultApi } from "./api";
 import { Navigate, Route, Routes } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 
 import Calendar from "./components/Calendar";
 import { CalendarProvider } from "./context/CalendarContext";
 import Login from "./components/Login";
+import Profile from "./components/Profile"; // Import Profile component
 import ProtectedRoute from "./components/ProtectedRoute";
 import Register from "./components/Register";
 import { TreatmentProgram } from "./types";
@@ -73,27 +70,28 @@ const App: React.FC = () => {
     };
     fetchData();
   }, [isLoading]);
+
   return (
     <CalendarProvider>
       <div className="App">
-        <Routes>
-          <Route path="/" element={<Navigate to="/calendar" />} />{" "}
-          {/* Redirect root to /calendar */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route
-            path="/calendar"
-            element={
-              <ProtectedRoute>
-                {programData ? (
-                  <Calendar programData={programData} />
-                ) : (
-                  <div>Loading...</div>
-                )}
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+          <Routes>
+            <Route path="/" element={<Navigate to="/calendar" />} /> {/* Redirect root to /calendar */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/profile" element={<Profile />} /> {/* Remove email parameter */}
+            <Route
+              path="/calendar"
+              element={
+                <ProtectedRoute>
+                  {programData ? (
+                    <Calendar programData={programData} />
+                  ) : (
+                    <div>Loading...</div>
+                  )}
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
       </div>
     </CalendarProvider>
   );

@@ -1,14 +1,15 @@
-import { Divider, IconButton, Menu, MenuItem, Typography } from "@mui/material";
-import React, { useState } from "react";
+import { Divider, IconButton, Menu, MenuItem, Typography } from '@mui/material';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 const ProfileDropdown: React.FC = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const location = useLocation();
+  const { t } = useTranslation();
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -17,14 +18,15 @@ const ProfileDropdown: React.FC = () => {
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
 
   const handleNavigate = (path: string) => {
-    navigate(path);
+    const params = new URLSearchParams(location.search);
+    const email = params.get('email');
+    navigate(`${path}?email=${encodeURIComponent(email || '')}`);
     handleMenuClose();
   };
 
@@ -68,6 +70,6 @@ const ProfileDropdown: React.FC = () => {
       </Menu>
     </>
   );
-  };
-  
-  export default ProfileDropdown;
+};
+
+export default ProfileDropdown;
