@@ -37,6 +37,14 @@ const ProfileDropdown: React.FC = () => {
         aria-haspopup="true"
         onClick={handleMenuOpen}
         color="inherit"
+        sx={{
+          backgroundColor: 'rgb(93, 175, 116)',
+          color: 'white',
+          marginLeft: '20px',
+          '&:hover': {
+            backgroundColor: 'rgb(83, 165, 106)',
+          },
+        }}
       >
         <AccountCircleIcon />
       </IconButton>
@@ -47,19 +55,19 @@ const ProfileDropdown: React.FC = () => {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={() => handleNavigate("/profile")}>
-          <Typography>{t("Profile")}</Typography>
+        <MenuItem onClick={() => handleNavigate('/profile')}>
+          <Typography>{t('Profile')}</Typography>
         </MenuItem>
-        <MenuItem onClick={() => handleNavigate("/settings")}>
-          <Typography>{t("Settings")}</Typography>
+        <MenuItem onClick={() => handleNavigate('/settings')}>
+          <Typography>{t('Settings')}</Typography>
         </MenuItem>
         <Divider />
         <MenuItem onClick={handleLogout}>
-          <Typography>{t("Logout")}</Typography>
+          <Typography>{t('Logout')}</Typography>
         </MenuItem>
       </Menu>
     </>
   );
-};
-
-export default ProfileDropdown;
+  };
+  
+  export default ProfileDropdown;
