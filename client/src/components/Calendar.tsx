@@ -7,6 +7,7 @@ import { format, isSameDay, isToday } from 'date-fns';
 import AddActivityModal from './AddActivityModal';
 import { ApiCreateActivityPost201Response } from '../api';
 import LanguageSwitcher from './LanguageSwitcher';
+import ProfileDropdown from './ProfileDropdown'; // Import ProfileDropdown
 import { getCalendarDays } from '../utils/dateUtils';
 import { useCalendar } from '../context/CalendarContext';
 import useCalendarData from '../hooks/useCalendarData';
@@ -53,14 +54,6 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  const handleLogout = () => {
-    // Clear the token from localStorage
-    localStorage.removeItem('token');
-
-    // Redirect to the login page or perform any other necessary actions
-    navigate('/login');
-  };
-
   useEffect(() => {
     // Check if the token is present in localStorage
     const token = localStorage.getItem('token');
@@ -85,7 +78,7 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
           <AddActivityButton onClick={openModal}>
             Add Activity
           </AddActivityButton>
-          <button onClick={handleLogout}>Logout</button> {/* Add Logout button */}
+          <ProfileDropdown /> {/* Replace Logout button with ProfileDropdown */}
         </HeaderWrapper>
 
         <CalendarHeader>
