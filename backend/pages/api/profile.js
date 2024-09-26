@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const cors = Cors({
-  methods: ['POST'],
+  methods: ['POST'], // Update to allow POST method
   origin: '*', // Allow any origin
 });
 
@@ -21,33 +21,22 @@ function runMiddleware(req, res, fn) {
 
 /**
  * @swagger
- * /api/create-activity:
+ * /api/profile:
  *   post:
- *     summary: Create a new activity
- *     description: Adds a new activity to the treatment program.
+ *     summary: Get user profile
+ *     description: Fetches user profile data from the database.
  *     requestBody:
- *       description: The activity to be created
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               week:
+ *               email:
  *                 type: string
- *               weekday:
- *                 type: string
- *               title:
- *                 type: string
- *               completed:
- *                 type: boolean
- *             required:
- *               - week
- *               - weekday
- *               - title
  *     responses:
- *       201:
- *         description: Successfully created activity
+ *       200:
+ *         description: Successfully fetched user profile
  *         content:
  *           application/json:
  *             schema:
@@ -55,16 +44,12 @@ function runMiddleware(req, res, fn) {
  *               properties:
  *                 id:
  *                   type: integer
- *                 week:
+ *                 name:
  *                   type: string
- *                 weekday:
+ *                 email:
  *                   type: string
- *                 title:
- *                   type: string
- *                 completed:
- *                   type: boolean
- *       400:
- *         description: Bad request
+ *       404:
+ *         description: User not found
  *         content:
  *           application/json:
  *             schema:
@@ -88,30 +73,20 @@ export default async function handler(req, res) {
   await runMiddleware(req, res, cors);
 
   if (req.method === 'POST') {
-    const { week, weekday, title, completed } = req.body;
-
-    // Validate the request body
-    if (!week || !weekday || !title) {
-      console.error('Validation error: Missing required fields');
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
     try {
-      // Create a new activity in the database
-      const newActivity = await prisma.treatmentProgram.create({
-        data: {
-          week,
-          weekday,
-          title,
-          completed: completed || false,
-        },
+      const { email } = req.body; // Extract email from request body
+      const user = await prisma.user.findUnique({
+        where: { email: email },
       });
 
-      // Respond with the created activity
-      return res.status(201).json(newActivity);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      res.status(200).json(user);
     } catch (error) {
-      console.error('Error creating activity:', error);
-      return res.status(500).json({ error: 'Internal server error' });
+      console.error('Error fetching user data:', error);
+      res.status(500).json({ error: 'Failed to fetch user data' });
     }
   } else {
     // Method not allowed

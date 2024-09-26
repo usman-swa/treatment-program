@@ -1,11 +1,33 @@
 import { Box, Button, CircularProgress, MenuItem, Modal as MuiModal, TextField } from "@mui/material";
+import { Configuration, DefaultApi } from "../api";
 import React, { useState } from "react";
 
 import { ADD_ACTIVITY } from "../context/CalendarContext";
-import { DefaultApi } from "../api";
 import { addDays } from "date-fns";
 import { modalStyle } from "../styles/modalStyle";
 
+/**
+ * AddActivityModal component allows users to add a new activity.
+ * 
+ * @component
+ * @param {Object} props - The properties object.
+ * @param {boolean} props.isOpen - Determines if the modal is open.
+ * @param {() => void} props.onClose - Function to close the modal.
+ * @param {any} props.dispatch - Dispatch function to update global state.
+ * 
+ * @returns {JSX.Element} The rendered AddActivityModal component.
+ * 
+ * @example
+ * <AddActivityModal isOpen={isOpen} onClose={handleClose} dispatch={dispatch} />
+ * 
+ * @remarks
+ * This component uses Material-UI components for the modal and form elements.
+ * It handles form state and submission, including validation and API interaction.
+ * 
+ * @internal
+ * The component maintains local state for the new activity, loading status, error messages, and success messages.
+ * It dispatches an action to add the new activity to the global state upon successful submission.
+ */
 const AddActivityModal: React.FC<{ isOpen: boolean; onClose: () => void; dispatch: any }> = ({
   isOpen,
   onClose,
@@ -36,15 +58,31 @@ const AddActivityModal: React.FC<{ isOpen: boolean; onClose: () => void; dispatc
     try {
       setLoading(true);
 
-      const api = new DefaultApi();
-      const response = await api.apiCreateActivityPost({
-        week: newActivity.week,
-        weekday: newActivity.weekday,
-        title: newActivity.title,
-        completed: newActivity.completed,
-      });
+       // Access the BASE_PATH environment variable
+       const basePath = "http://localhost:8000"; // Use the default value if not set
+       if (!basePath) {
+         throw new Error("REACT_APP_BASE_PATH is not defined");
+       }
+       // Create an instance of the generated API client with the token
+       const config = new Configuration({
+         basePath: basePath, // Use the BASE_PATH environment variable
+       });
 
-      if (response.status === 201) {
+       const apiClient = new DefaultApi(config);
+
+       let response;
+       try {
+        response = await apiClient.apiCreateActivityPost({
+          week: newActivity.week,
+          weekday: newActivity.weekday,
+          title: newActivity.title,
+          completed: newActivity.completed,
+        });
+      } catch (error) {
+        console.error("Error:", error);
+      }
+
+      if (response && response.status === 201) {
         const baseDate = new Date(2024, 8, 2);
         const weekNumber = parseInt(newActivity.week.replace("week", ""), 10);
         const weekStartDate = addDays(baseDate, (weekNumber - 36) * 7);

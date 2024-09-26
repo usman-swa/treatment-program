@@ -1,48 +1,64 @@
+import { authenticate, authorize } from './middleware/auth.js'; // Adjust the import path as necessary
+
 import cors from 'cors';
+import createActivityHandler from './pages/api/create-activity.js'; // Adjust the path as necessary
 import express from 'express';
-import next from 'next';
+import profileHandler from './pages/api/profile.js'; // Import the profile handler
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
+import treatmentProgramHandler from './pages/api/treatment-program.js';
 
-const dev = process.env.NODE_ENV !== 'production';
-const app = next({ dev });
-const handle = app.getRequestHandler();
+const app = express();
+const PORT = process.env.PORT || 8000;
 
-app.prepare().then(() => {
-  const server = express();
+// Middleware Configuration
+app.use(cors({
+  origin: true, // Allow requests from any origin
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+app.use(express.json());
 
-  // CORS setup
-  server.use(cors());
+// Log incoming requests
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
+});
 
-  // Swagger API documentation
-  const swaggerSpec = swaggerJsdoc({
-    definition: {
-      openapi: '3.0.0',
-      info: {
-        title: 'Treatment Program API',
-        version: '1.0.0',
-        description: 'API for managing treatment programs and activities',
-      },
-      servers: [
-        {
-          url: 'http://localhost:4000/api',
-        },
-      ],
+// Swagger API Documentation
+const swaggerSpec = swaggerJsdoc({
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Treatment Program API',
+      version: '1.0.0',
+      description: 'API for managing treatment programs and activities',
     },
-    apis: ['./pages/api/*.js'],  // Adjust if necessary
-  });
+    servers: [
+      {
+        url: 'http://localhost:8000/api',
+      },
+    ],
+  },
+  apis: ['./pages/api/*.js'],  // Adjust if necessary
+});
 
-  // Swagger UI route
-  server.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// Swagger UI Route
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-  // Handle API routes (Next.js API routes are auto-handled)
-  server.all('*', (req, res) => {
-    return handle(req, res);
-  });
+// Authentication Routes
+app.post('/api/auth/register', (req, res) => import('./pages/api/auth.js').then(module => module.register(req, res)));
+app.post('/api/auth/login', (req, res) => import('./pages/api/auth.js').then(module => module.login(req, res)));
 
-  // Server listens on port 4000
-  server.listen(4000, (err) => {
-    if (err) throw err;
-    console.log('> Ready on http://localhost:4000');
-  });
+// Apply the authenticate middleware to all routes that require authentication
+app.use('/api/treatment-program', authenticate, authorize);
+
+// API Routes
+app.get('/api/treatment-program', treatmentProgramHandler);
+app.post('/api/create-activity', createActivityHandler);
+app.post('/api/profile', profileHandler); // Add the profile route
+
+// Start the Server
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });

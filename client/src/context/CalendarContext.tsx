@@ -49,6 +49,28 @@ interface SetActivitiesAction {
 type Action = AddActivityAction | SetActivitiesAction;
 
 // Reducer using spread operator
+/**
+ * Reducer function for managing calendar state.
+ *
+ * @param state - The current state of the calendar.
+ * @param action - The action to be processed.
+ * @returns The new state of the calendar.
+ *
+ * @remarks
+ * This reducer handles two types of actions:
+ * - `ADD_ACTIVITY`: Adds a new activity to the list of activities.
+ * - `SET_ACTIVITIES`: Sets the list of activities to the provided payload.
+ *
+ * @example
+ * // Example action for adding an activity
+ * const addAction = { type: ADD_ACTIVITY, payload: newActivity };
+ * const newState = calendarReducer(currentState, addAction);
+ *
+ * @example
+ * // Example action for setting activities
+ * const setActivitiesAction = { type: SET_ACTIVITIES, payload: activitiesArray };
+ * const newState = calendarReducer(currentState, setActivitiesAction);
+ */
 const calendarReducer = (state: State, action: Action): State => {
   switch (action.type) {
     case ADD_ACTIVITY:
@@ -74,8 +96,6 @@ interface CalendarProviderProps {
 // CalendarProvider component
 export const CalendarProvider = ({ children }: CalendarProviderProps) => {
   const [state, dispatch] = useReducer(calendarReducer, initialState);
-
-  console.log("Current state:", state); // Log state for debugging
 
   return (
     <CalendarContext.Provider value={{ state, dispatch }}>

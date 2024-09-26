@@ -1,53 +1,39 @@
-import { ActivityContainer, ActivityTitle, CalendarBody, DayContainer, DayNumber } from "../components/CalendarBody";
-import { CalendarHeader, DayName, Header } from "../components/CalendarHeader";
-import React, { useMemo, useState } from "react";
-import { format, isSameDay, isToday } from "date-fns";
+import { ActivityContainer, ActivityTitle, CalendarBody, DayContainer, DayNumber } from './CalendarBody';
+import { AddActivityButton, CalendarContainer, HeaderWrapper } from './StyledComponents';
+import { CalendarHeader, DayName } from './CalendarHeader';
+import React, { useEffect, useMemo, useState } from 'react';
+import { format, isSameDay, isToday } from 'date-fns';
 
-import AddActivityModal from "../components/AddActivityModal";
-import { ApiCreateActivityPost201Response } from "../api";
-import LanguageSwitcher from "./LanguageSwitcher";
-import { getCalendarDays } from "../utils/dateUtils";
-import styled from "styled-components";
-import { useCalendar } from "../context/CalendarContext";
-import useCalendarData from "../hooks/useCalendarData";
-import { useTranslation } from "react-i18next";
+import AddActivityModal from './AddActivityModal';
+import { ApiCreateActivityPost201Response } from '../api';
+import { Box } from '@mui/material';
+import MainLayout from './MainLayout';
+import { getCalendarDays } from '../utils/dateUtils';
+import { useCalendar } from '../context/CalendarContext';
+import useCalendarData from '../hooks/useCalendarData';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for navigation
+import { useTranslation } from 'react-i18next';
 
-const AddActivityButton = styled.button`
-  background-color: rgb(93, 175, 116);
-  border: none;
-  border-radius: 24px;
-  color: white;
-  font-size: 16px;
-  padding: 10px 20px;
-  cursor: pointer;
-`;
-
-const CalendarContainer = styled.div`
-  background-color: white;
-  border: 4px solid rgb(93, 175, 116);
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  margin: 24px auto 0;
-  max-width: 1200px;
-  padding: 0;
-  width: 100%;
-`;
-
-const HeaderWrapper = styled.div`
-  background-color: white;
-  border-bottom: 1px solid rgb(93, 175, 116);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0 20px;
-`;
-
+/**
+ * 
+ * @example
+ * <Calendar programData={programData} />
+ * 
+ * @remarks
+ * This component uses the `useCalendar` hook to access the calendar context,
+ * and the `useTranslation` hook for internationalization. It also uses the
+ * `useCalendarData` hook to fetch and dispatch calendar data.
+ * 
+ * The calendar displays days of the current month and highlights the current day.
+ * Activities for each day are fetched from the global state and displayed within
+ * the corresponding day cell. An "Add Activity" button opens a modal to add new activities.
+ */
 const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
   programData,
 }) => {
   const { t } = useTranslation();
   const today = useMemo(() => new Date(), []);
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const calendarContext = useCalendar(); // Access context
   if (!calendarContext) {
@@ -55,6 +41,7 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
   }
   const { state, dispatch } = calendarContext; // Destructure state and dispatch from context
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
 
   const currentMonth = today;
   const filledDays = getCalendarDays(currentMonth);
@@ -67,15 +54,32 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
+  useEffect(() => {
+    // Check if the token is present in localStorage
+    const token = localStorage.getItem('token');
+    if (!token) {
+      // Redirect to the login page if not logged in
+      navigate('/login');
+    } else {
+      setIsLoading(false); // Set loading to false if token is found
+    }
+  }, [navigate]);
+
+  if (isLoading) {
+    return <div>Loading...</div>; // Show loading state while checking for token
+  }
+
   return (
     <>
+    <MainLayout>
       <CalendarContainer>
         <HeaderWrapper>
-          <LanguageSwitcher />
-          <Header>{t("CalendarTitle")}</Header>
-          <AddActivityButton onClick={openModal}>
-            Add Activity
-          </AddActivityButton>
+          
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', height: '64px', alignItems: 'center'}}>
+            <AddActivityButton onClick={openModal}>
+              Add Activity
+            </AddActivityButton>
+          </Box>
         </HeaderWrapper>
 
         <CalendarHeader>
@@ -118,9 +122,10 @@ const Calendar: React.FC<{ programData: ApiCreateActivityPost201Response }> = ({
             );
           })}
         </CalendarBody>
-      </CalendarContainer>
 
-      <AddActivityModal isOpen={isModalOpen} onClose={closeModal} dispatch={dispatch} />
+        <AddActivityModal isOpen={isModalOpen} onClose={closeModal} dispatch={dispatch} />
+      </CalendarContainer>
+    </MainLayout>
     </>
   );
 };

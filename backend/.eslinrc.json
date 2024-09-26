@@ -1,0 +1,24 @@
+{
+    "plugins": ["import"],
+    "rules": {
+      "import/order": [
+        "error",
+        {
+          "groups": ["builtin", "external", "internal"],
+          "pathGroups": [
+            {
+              "pattern": "dotenv",
+              "group": "builtin",
+              "position": "before"
+            }
+          ],
+          "pathGroupsExcludedImportTypes": ["builtin"],
+          "newlines-between": "always",
+          "alphabetize": {
+            "order": "asc",
+            "caseInsensitive": true
+          }
+        }
+      ]
+    }
+  }

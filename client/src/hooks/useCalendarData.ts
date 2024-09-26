@@ -5,14 +5,33 @@ import { ApiCreateActivityPost201Response } from "../api";
 import { TreatmentProgram } from "../types";
 import { useEffect } from "react";
 
+/**
+ * Custom hook to process and manage calendar data for a treatment program.
+ *
+ * @param {ApiCreateActivityPost201Response} programData - The data of the treatment program containing activities.
+ * @param {Date} today - The current date to compare activities against.
+ * @param {any} dispatch - The dispatch function to update the global state with processed activities.
+ *
+ * @returns {void}
+ *
+ * @remarks
+ * This hook processes the treatment program data to categorize activities into overdue, future, and current activities.
+ * It then dispatches the processed activities to update the global state.
+ *
+ * @example
+ * ```typescript
+ * const programData = fetchProgramData();
+ * const today = new Date();
+ * const dispatch = useDispatch();
+ * useCalendarData(programData, today, dispatch);
+ * ```
+ */
 const useCalendarData = (programData: ApiCreateActivityPost201Response, today: Date, dispatch: any) => {
   useEffect(() => {
     if (!programData) {
       console.warn("No programData available");
       return;
     }
-
-    console.log("Program Data:", programData);
 
     const treatmentProgram = programData as TreatmentProgram;
     const allActivities: Activity[] = [];
@@ -41,7 +60,6 @@ const useCalendarData = (programData: ApiCreateActivityPost201Response, today: D
           }
 
           const activityDate = addDays(weekStartDate, dayIndex);
-          console.log("Activity Date:", activityDate);
 
           let title = activity.title;
           if (!activity.completed && isBefore(activityDate, today)) {
@@ -80,8 +98,6 @@ const useCalendarData = (programData: ApiCreateActivityPost201Response, today: D
         }
       );
     });
-
-    console.log("Processed Activities:", allActivities); // Log to see what is being processed
 
     dispatch({ type: SET_ACTIVITIES, payload: allActivities }); // Update global state
   }, [programData, today, dispatch]);
