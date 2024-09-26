@@ -18,9 +18,6 @@ describe('getCalendarDays', () => {
             day = addDays(day, 1);
         }
 
-        console.log('Generated days:', days);
-        console.log('Expected days:', expectedDays);
-
         expect(days).toEqual(expectedDays);
     });
 

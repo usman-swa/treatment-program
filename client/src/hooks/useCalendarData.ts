@@ -33,8 +33,6 @@ const useCalendarData = (programData: ApiCreateActivityPost201Response, today: D
       return;
     }
 
-    console.log("Program Data:", programData);
-
     const treatmentProgram = programData as TreatmentProgram;
     const allActivities: Activity[] = [];
 
@@ -62,7 +60,6 @@ const useCalendarData = (programData: ApiCreateActivityPost201Response, today: D
           }
 
           const activityDate = addDays(weekStartDate, dayIndex);
-          console.log("Activity Date:", activityDate);
 
           let title = activity.title;
           if (!activity.completed && isBefore(activityDate, today)) {
@@ -101,8 +98,6 @@ const useCalendarData = (programData: ApiCreateActivityPost201Response, today: D
         }
       );
     });
-
-    console.log("Processed Activities:", allActivities); // Log to see what is being processed
 
     dispatch({ type: SET_ACTIVITIES, payload: allActivities }); // Update global state
   }, [programData, today, dispatch]);

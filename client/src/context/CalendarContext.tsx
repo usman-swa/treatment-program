@@ -97,8 +97,6 @@ interface CalendarProviderProps {
 export const CalendarProvider = ({ children }: CalendarProviderProps) => {
   const [state, dispatch] = useReducer(calendarReducer, initialState);
 
-  console.log("Current state:", state); // Log state for debugging
-
   return (
     <CalendarContext.Provider value={{ state, dispatch }}>
       {children}

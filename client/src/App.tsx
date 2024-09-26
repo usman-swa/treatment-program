@@ -1,5 +1,5 @@
 import { ApiTreatmentProgramGet200ResponseValueInner, Configuration, DefaultApi } from "./api";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 
 import Calendar from "./components/Calendar";
@@ -14,25 +14,18 @@ import axios from "axios";
 const App: React.FC = () => {
   const [programData, setProgramData] = useState<TreatmentProgram | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (!isLoading) return;
-    const fetchData = async () => {
+    const fetchData = async (navigate: ReturnType<typeof useNavigate>) => {
       try {
         // Retrieve the token from localStorage
         const token = localStorage.getItem("token");
-        if (!token) {
-          throw new Error("No token found");
-        }
-        console.log("Token:", token); // Log the token to verify
         // Access the BASE_PATH environment variable
-        const basePath = "http://localhost:8000"; // Use the default value if not set
-        if (!basePath) {
-          throw new Error("REACT_APP_BASE_PATH is not defined");
-        }
+        const basePath = "http://localhost:8000";
         // Create an instance of the generated API client with the token
-        const config = new Configuration({
-          basePath: basePath, // Use the BASE_PATH environment variable
-        });
+        const config = new Configuration({ basePath });
         const apiClient = new DefaultApi(config);
         // Add an interceptor to include the Authorization header
         axios.interceptors.request.use(
@@ -47,11 +40,14 @@ const App: React.FC = () => {
         // Call the API method to get the treatment program data
         let apiData: ApiTreatmentProgramGet200ResponseValueInner = {};
         try {
-          const response = await apiClient.apiTreatmentProgramGet(); // Replace with your actual API endpoint
-          console.log("Response:", response);
+          const response = await apiClient.apiTreatmentProgramGet();
           apiData = response.data;
         } catch (error) {
-          console.error("Error:", error);
+          if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
+            // Token has expired or is invalid
+            localStorage.removeItem('token');
+            navigate('/login');
+          }
         }
         // Map API response to TreatmentProgram type
         const treatmentProgram: TreatmentProgram = {};
@@ -68,8 +64,8 @@ const App: React.FC = () => {
         console.error("Error fetching data:", error);
       }
     };
-    fetchData();
-  }, [isLoading]);
+    fetchData(navigate);
+  }, [isLoading, navigate]);
 
   return (
     <CalendarProvider>

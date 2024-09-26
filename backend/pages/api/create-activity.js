@@ -108,7 +108,6 @@ export default async function handler(req, res) {
       });
 
       // Respond with the created activity
-      console.log('Activity created:', newActivity);
       return res.status(201).json(newActivity);
     } catch (error) {
       console.error('Error creating activity:', error);
